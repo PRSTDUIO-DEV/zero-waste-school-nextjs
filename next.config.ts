@@ -19,7 +19,9 @@ const nextConfig: NextConfig = {
     ignoreDuringBuilds: false,
   },
   // Output standalone for better Vercel compatibility
-  output: 'standalone'
+  output: 'standalone',
+  // Disable static generation for problematic pages
+  staticPageGenerationTimeout: 1000
 };
 
 export default nextConfig;
