@@ -5,6 +5,8 @@ import { useSession } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
 import LogoutButton from '@/components/LogoutButton'
 
+export const dynamic = 'force-dynamic'
+
 interface DashboardStats {
   recycleWeight: number
   generalWeight: number
