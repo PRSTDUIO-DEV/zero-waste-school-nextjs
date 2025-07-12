@@ -17,8 +17,14 @@ export async function GET(request: Request) {
       )
     }
 
-    const { searchParams } = new URL(request.url)
-    const filter = searchParams.get('filter') || 'all'
+    let filter = 'all'
+    try {
+      const { searchParams } = new URL(request.url)
+      filter = searchParams.get('filter') || 'all'
+    } catch (error) {
+      // Handle invalid URL during build time
+      console.warn('Invalid URL during build time:', request.url)
+    }
     const currentUserId = parseInt(session.user.id)
 
     // Build where clause based on filter

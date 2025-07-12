@@ -10,7 +10,16 @@ const nextConfig: NextConfig = {
   // Disable static optimization for API routes
   generateBuildId: async () => {
     return 'zero-waste-school-' + Date.now()
-  }
+  },
+  // Skip build-time errors for missing environment variables
+  typescript: {
+    ignoreBuildErrors: false,
+  },
+  eslint: {
+    ignoreDuringBuilds: false,
+  },
+  // Output standalone for better Vercel compatibility
+  output: 'standalone'
 };
 
 export default nextConfig;
