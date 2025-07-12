@@ -1,0 +1,104 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id           Int      @id @default(autoincrement()) @map("user_id")
+  name         String
+  email        String   @unique
+  pwdHash      String   @map("pwd_hash")
+  role         Role     @default(STUDENT)
+  grade        Int?     // 1-6, NULL for teacher/admin
+  classSection String?  @map("class_section") // e.g. "2"
+  createdAt    DateTime @default(now()) @map("created_at")
+
+  // Relations
+  wasteRecords WasteRecord[]
+  userBadges   UserBadge[]
+  auditLogs    AuditLog[]
+
+  @@map("users")
+}
+
+model WasteType {
+  id          Int     @id @default(autoincrement()) @map("type_id")
+  name        String
+  description String?
+  pointFactor Decimal @default(1.00) @map("point_factor") @db.Decimal(4, 2)
+
+  // Relations
+  wasteRecords WasteRecord[]
+
+  @@map("waste_types")
+}
+
+model WasteRecord {
+  id       Int      @id @default(autoincrement()) @map("record_id")
+  userId   Int      @map("user_id")
+  typeId   Int      @map("type_id")
+  weightG  Int      @map("weight_g") // weight in grams
+  points   Int      // calculated: weight_g * point_factor
+  recordDt DateTime @default(now()) @map("record_dt")
+
+  // Relations
+  user      User      @relation(fields: [userId], references: [id])
+  wasteType WasteType @relation(fields: [typeId], references: [id])
+
+  @@map("waste_records")
+}
+
+model Badge {
+  id           Int    @id @default(autoincrement()) @map("badge_id")
+  name         String
+  description  String?
+  thresholdPts Int    @map("threshold_pts")
+
+  // Relations
+  userBadges UserBadge[]
+
+  @@map("badges")
+}
+
+model UserBadge {
+  userId    Int      @map("user_id")
+  badgeId   Int      @map("badge_id")
+  awardedDt DateTime @default(now()) @map("awarded_dt")
+
+  // Relations
+  user  User  @relation(fields: [userId], references: [id])
+  badge Badge @relation(fields: [badgeId], references: [id])
+
+  @@id([userId, badgeId])
+  @@map("user_badges")
+}
+
+model AuditLog {
+  id       Int      @id @default(autoincrement()) @map("log_id")
+  adminId  Int      @map("admin_id")
+  action   String
+  targetId String?  @map("target_id")
+  details  String?
+  logDt    DateTime @default(now()) @map("log_dt")
+
+  // Relations
+  admin User @relation(fields: [adminId], references: [id])
+
+  @@map("audit_logs")
+}
+
+enum Role {
+  STUDENT
+  TEACHER
+  ADMIN
+}

@@ -1,36 +1,182 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Zero Waste School System 🌱
 
-## Getting Started
+ระบบติดตามและจัดการขยะในโรงเรียน เพื่อสิ่งแวดล้อมที่ดีกว่า
 
-First, run the development server:
+## ✨ Features
+
+- 🔐 **Authentication System** - ระบบล็อกอินสำหรับนักเรียน ครู และผู้ดูแล
+- 📊 **Waste Tracking** - บันทึกและติดตามข้อมูลขยะแต่ละประเภท
+- 🏆 **Leaderboard** - การแข่งขันระหว่างนักเรียนและห้องเรียน
+- 🎖️ **Badge System** - ระบบเหรียญรางวัลเมื่อบรรลุเป้าหมาย
+- 📈 **Analytics** - สถิติและกราฟแสดงผลข้อมูล
+- 📱 **Responsive Design** - รองรับมือถือและแท็บเล็ต
+
+## 🚀 Tech Stack
+
+- **Frontend**: Next.js 14 + TypeScript + Tailwind CSS
+- **Authentication**: NextAuth.js
+- **Database**: PostgreSQL + Prisma ORM
+- **Deployment**: Vercel
+- **Database Hosting**: Neon (ฟรี 10GB) หรือ Supabase (ฟรี 2GB)
+
+## 📋 Requirements
+
+ตาม RPD Document:
+- User authentication และ role-based access
+- Waste recording system (1g = 1 point default)
+- Leaderboards และ ranking system
+- Badge และ milestone system
+- Admin panel สำหรับจัดการระบบ
+- Audit logging สำหรับ admin actions
+
+## 🛠️ Installation
+
+### 1. Clone และติดตั้ง dependencies
+
+```bash
+cd app-src
+npm install
+```
+
+### 2. ตั้งค่าฐานข้อมูล
+
+#### Option A: Neon (แนะนำ)
+1. สมัครที่ [neon.tech](https://neon.tech)
+2. สร้าง database ใหม่
+3. คัดลอก connection string
+
+#### Option B: Supabase
+1. สมัครที่ [supabase.com](https://supabase.com)
+2. สร้างโปรเจคใหม่
+3. ไปที่ Settings > Database
+4. คัดลอก connection string
+
+### 3. ตั้งค่า Environment Variables
+
+สร้างไฟล์ `.env` และเพิ่ม:
+
+```env
+# Database (แทนที่ด้วย URL จริงของคุณ)
+DATABASE_URL="postgresql://username:password@hostname:5432/dbname?sslmode=require"
+
+# NextAuth
+NEXTAUTH_SECRET="your-super-secret-key-change-this"
+NEXTAUTH_URL="http://localhost:3000"
+```
+
+### 4. Setup Database Schema
+
+```bash
+# Generate Prisma client
+npx prisma generate
+
+# Push schema to database
+npx prisma db push
+
+# Optional: Seed data
+npx prisma db seed
+```
+
+### 5. Run Development Server
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+เปิด [http://localhost:3000](http://localhost:3000) ในเบราว์เซอร์
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## 🗃️ Database Schema
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```prisma
+model User {
+  id           Int      @id @default(autoincrement())
+  name         String
+  email        String   @unique
+  pwdHash      String
+  role         Role     @default(STUDENT)
+  grade        Int?     // 1-6 for students
+  classSection String?  // e.g. "2"
+  
+  wasteRecords WasteRecord[]
+  userBadges   UserBadge[]
+  auditLogs    AuditLog[]
+}
 
-## Learn More
+model WasteType {
+  id          Int     @id @default(autoincrement())
+  name        String
+  pointFactor Decimal @default(1.00)
+  
+  wasteRecords WasteRecord[]
+}
 
-To learn more about Next.js, take a look at the following resources:
+model WasteRecord {
+  id       Int      @id @default(autoincrement())
+  userId   Int
+  typeId   Int
+  weightG  Int      // weight in grams
+  points   Int      // calculated points
+  recordDt DateTime @default(now())
+  
+  user      User      @relation(fields: [userId], references: [id])
+  wasteType WasteType @relation(fields: [typeId], references: [id])
+}
+```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## 🚢 Deployment
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+### Deploy บน Vercel
 
-## Deploy on Vercel
+1. Push code ขึ้น GitHub
+2. Connect repository กับ Vercel
+3. เพิ่ม Environment Variables ใน Vercel Dashboard:
+   - `DATABASE_URL`
+   - `NEXTAUTH_SECRET`
+   - `NEXTAUTH_URL` (URL ของ production)
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+### Database Migration บน Production
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+```bash
+npx prisma migrate deploy
+```
+
+## 🔑 Default Users
+
+หลังจาก seed data:
+
+```
+Admin: admin@school.ac.th / admin123
+Teacher: teacher@school.ac.th / teacher123
+Student: student@school.ac.th / student123
+```
+
+## 📱 API Routes
+
+- `POST /api/auth/[...nextauth]` - Authentication
+- `GET/POST /api/waste-records` - Waste record management
+- `GET /api/leaderboard` - Ranking data
+- `GET /api/stats` - User statistics
+- `GET/POST /api/admin/*` - Admin operations
+
+## 🤝 Contributing
+
+1. Fork repository
+2. สร้าง feature branch
+3. Commit changes
+4. Push และสร้าง Pull Request
+
+## 📄 License
+
+MIT License - ดูไฟล์ LICENSE สำหรับรายละเอียด
+
+## 🆘 Support
+
+หากพบปัญหา:
+1. ตรวจสอบ environment variables
+2. ตรวจสอบ database connection
+3. ดู console logs
+4. สร้าง issue ใน GitHub
+
+---
+
+**Zero Waste School System** - สร้างโดย ❤️ เพื่อสิ่งแวดล้อมที่ดีกว่า 🌍
