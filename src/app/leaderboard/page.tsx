@@ -24,29 +24,29 @@ export default function Leaderboard() {
   const [filter, setFilter] = useState<'all' | 'students' | 'myGrade'>('all')
   const [loading, setLoading] = useState(true)
 
-  const fetchLeaderboard = async () => {
-    try {
-      const res = await fetch(`/api/leaderboard?filter=${filter}`)
-      const data = await res.json()
-      
-      if (res.ok) {
-        setLeaderboard(data.leaderboard)
-        setUserRank(data.userRank)
-      }
-    } catch (error) {
-      console.error('Error fetching leaderboard:', error)
-    } finally {
-      setLoading(false)
-    }
-  }
-
   useEffect(() => {
+    const fetchLeaderboard = async () => {
+      try {
+        const res = await fetch(`/api/leaderboard?filter=${filter}`)
+        const data = await res.json()
+        
+        if (res.ok) {
+          setLeaderboard(data.leaderboard)
+          setUserRank(data.userRank)
+        }
+      } catch (error) {
+        console.error('Error fetching leaderboard:', error)
+      } finally {
+        setLoading(false)
+      }
+    }
+
     if (status === 'unauthenticated') {
       router.push('/auth/signin')
     } else if (status === 'authenticated') {
       fetchLeaderboard()
     }
-  }, [status, router, filter, fetchLeaderboard])
+  }, [status, router, filter])
 
   if (status === 'loading' || loading) {
     return <div className="min-h-screen flex items-center justify-center">Loading...</div>

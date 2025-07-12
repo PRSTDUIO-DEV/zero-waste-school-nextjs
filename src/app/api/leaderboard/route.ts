@@ -21,7 +21,7 @@ export async function GET(request: Request) {
     try {
       const { searchParams } = new URL(request.url)
       filter = searchParams.get('filter') || 'all'
-    } catch (error) {
+    } catch {
       // Handle invalid URL during build time
       console.warn('Invalid URL during build time:', request.url)
     }
