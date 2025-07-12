@@ -33,7 +33,7 @@ export default function SignIn() {
           router.push('/dashboard')
         }
       }
-    } catch (error) {
+    } catch {
       setError('เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง')
     } finally {
       setIsLoading(false)

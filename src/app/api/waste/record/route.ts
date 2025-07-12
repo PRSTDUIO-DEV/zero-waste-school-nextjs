@@ -28,13 +28,13 @@ export async function POST(request: Request) {
     const wasteTypes = await prisma.wasteType.findMany({
       where: {
         id: {
-          in: records.map((r: any) => r.typeId)
+          in: records.map((r: { typeId: number }) => r.typeId)
         }
       }
     })
 
     // Create waste records with calculated points
-    const wasteRecords = records.map((record: any) => {
+    const wasteRecords = records.map((record: { typeId: number; weightG: number }) => {
       const wasteType = wasteTypes.find(t => t.id === record.typeId)
       if (!wasteType) {
         throw new Error(`Invalid waste type: ${record.typeId}`)

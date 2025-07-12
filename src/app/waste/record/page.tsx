@@ -12,7 +12,7 @@ interface WasteType {
 }
 
 export default function RecordWaste() {
-  const { data: session, status } = useSession()
+  const { status } = useSession()
   const router = useRouter()
   const [wasteTypes, setWasteTypes] = useState<WasteType[]>([])
   const [formData, setFormData] = useState<{ [key: number]: string }>({})
@@ -40,8 +40,8 @@ export default function RecordWaste() {
         initialData[type.id] = ''
       })
       setFormData(initialData)
-    } catch (error) {
-      console.error('Error fetching waste types:', error)
+    } catch {
+      console.error('Error fetching waste types')
     }
   }
 
@@ -52,7 +52,7 @@ export default function RecordWaste() {
 
     // Filter out empty values and convert to records
     const records = Object.entries(formData)
-      .filter(([_, weight]) => weight && parseFloat(weight) > 0)
+      .filter(([, weight]) => weight && parseFloat(weight) > 0)
       .map(([typeId, weight]) => ({
         typeId: parseInt(typeId),
         weightG: Math.round(parseFloat(weight) * 1000) // Convert kg to grams
@@ -85,13 +85,13 @@ export default function RecordWaste() {
         // Check for new badges
         if (data.newBadges && data.newBadges.length > 0) {
           setTimeout(() => {
-            alert(`🎉 ยินดีด้วย! คุณได้รับเหรียญใหม่: ${data.newBadges.map((b: any) => b.name).join(', ')}`)
+            alert(`🎉 ยินดีด้วย! คุณได้รับเหรียญใหม่: ${data.newBadges.map((b: { name: string }) => b.name).join(', ')}`)
           }, 500)
         }
       } else {
         setMessage({ type: 'error', text: data.error || 'เกิดข้อผิดพลาด' })
       }
-    } catch (error) {
+    } catch {
       setMessage({ type: 'error', text: 'เกิดข้อผิดพลาดในการบันทึก' })
     } finally {
       setLoading(false)
@@ -179,7 +179,7 @@ export default function RecordWaste() {
                 <div className="text-lg font-medium">
                   คะแนนรวม: {
                     Object.entries(formData)
-                      .filter(([_, weight]) => weight && parseFloat(weight) > 0)
+                      .filter(([, weight]) => weight && parseFloat(weight) > 0)
                       .reduce((total, [typeId, weight]) => {
                         const type = wasteTypes.find(t => t.id === parseInt(typeId))
                         return total + (type ? parseFloat(weight) * type.pointFactor * 1000 : 0)

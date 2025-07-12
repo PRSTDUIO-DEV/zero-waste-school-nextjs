@@ -20,12 +20,7 @@ interface RecentActivity {
   recordDt: string
 }
 
-interface Badge {
-  id: number
-  name: string
-  description: string | null
-  awardedDt: string
-}
+
 
 export default function Dashboard() {
   const { data: session, status } = useSession()
@@ -37,7 +32,6 @@ export default function Dashboard() {
     rank: '-'
   })
   const [recentActivities, setRecentActivities] = useState<RecentActivity[]>([])
-  const [badges, setBadges] = useState<Badge[]>([])
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
@@ -56,7 +50,6 @@ export default function Dashboard() {
       if (res.ok) {
         setStats(data.stats)
         setRecentActivities(data.recentActivities)
-        setBadges(data.badges)
       }
     } catch (error) {
       console.error('Error fetching dashboard data:', error)

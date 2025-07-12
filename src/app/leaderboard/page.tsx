@@ -24,14 +24,6 @@ export default function Leaderboard() {
   const [filter, setFilter] = useState<'all' | 'students' | 'myGrade'>('all')
   const [loading, setLoading] = useState(true)
 
-  useEffect(() => {
-    if (status === 'unauthenticated') {
-      router.push('/auth/signin')
-    } else if (status === 'authenticated') {
-      fetchLeaderboard()
-    }
-  }, [status, router, filter])
-
   const fetchLeaderboard = async () => {
     try {
       const res = await fetch(`/api/leaderboard?filter=${filter}`)
@@ -47,6 +39,14 @@ export default function Leaderboard() {
       setLoading(false)
     }
   }
+
+  useEffect(() => {
+    if (status === 'unauthenticated') {
+      router.push('/auth/signin')
+    } else if (status === 'authenticated') {
+      fetchLeaderboard()
+    }
+  }, [status, router, filter, fetchLeaderboard])
 
   if (status === 'loading' || loading) {
     return <div className="min-h-screen flex items-center justify-center">Loading...</div>

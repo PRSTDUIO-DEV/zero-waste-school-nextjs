@@ -19,7 +19,7 @@ export async function GET(request: Request) {
     const currentUserId = parseInt(session.user.id)
 
     // Build where clause based on filter
-    let whereClause: any = {}
+    let whereClause: Record<string, unknown> = {}
     
     if (filter === 'students') {
       whereClause.role = 'STUDENT'
