@@ -17,7 +17,7 @@ export function middleware(request: NextRequest) {
     }
     
     return NextResponse.next()
-  } catch (error) {
+  } catch {
     // Handle invalid URL during build time
     console.warn('Invalid URL in middleware:', request.url)
     return NextResponse.next()
