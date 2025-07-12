@@ -1,6 +1,5 @@
 {
-  "buildCommand": "prisma generate && npm run build",
-  "installCommand": "npm install && prisma generate",
+  "buildCommand": "npm run build",
   "functions": {
     "app/api/**/*.js": {
       "maxDuration": 30
