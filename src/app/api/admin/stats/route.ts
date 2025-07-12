@@ -3,6 +3,9 @@ import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 
+export const runtime = 'nodejs'
+export const dynamic = 'force-dynamic'
+
 export async function GET() {
   try {
     const session = await getServerSession(authOptions)
@@ -11,6 +14,14 @@ export async function GET() {
       return NextResponse.json(
         { error: 'Unauthorized' },
         { status: 401 }
+      )
+    }
+
+    // Check if prisma is available
+    if (!prisma) {
+      return NextResponse.json(
+        { error: 'Database not available' },
+        { status: 503 }
       )
     }
 
