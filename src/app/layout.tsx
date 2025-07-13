@@ -1,12 +1,12 @@
 import type { Metadata } from "next";
-import { Kanit } from "next/font/google";
+import { Noto_Sans_Thai } from "next/font/google";
 import "./globals.css";
 import SessionProvider from "@/components/providers/SessionProvider";
 
-const kanit = Kanit({
+const notoSansThai = Noto_Sans_Thai({
   subsets: ["latin", "thai"],
   weight: ["300", "400", "500", "600", "700"],
-  variable: "--font-kanit",
+  variable: "--font-noto-sans-thai",
 });
 
 export const metadata: Metadata = {
@@ -22,7 +22,7 @@ export default function RootLayout({
   return (
     <html lang="th">
       <body
-        className={`${kanit.variable} antialiased`}
+        className={`${notoSansThai.variable} antialiased`}
       >
         <SessionProvider>
           {children}

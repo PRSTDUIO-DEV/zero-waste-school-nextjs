@@ -19,65 +19,91 @@ export async function GET() {
 
     const userId = parseInt(session.user.id)
 
-    // Get user's waste records grouped by type
-    const wasteByType = await prisma.wasteRecord.groupBy({
-      by: ['typeId'],
-      where: { userId },
-      _sum: {
-        weightG: true,
-        points: true
-      }
-    })
+    // Optimize: Get all data in parallel using Promise.all
+    const [wasteByType, allUserPoints, recentActivities] = await Promise.all([
+      // Get user's waste records with type info in one query
+      prisma.wasteRecord.findMany({
+        where: { userId },
+        select: {
+          weightG: true,
+          points: true,
+          wasteType: {
+            select: {
+              name: true
+            }
+          }
+        }
+      }),
+      
+      // Get all users' points for ranking
+      prisma.wasteRecord.groupBy({
+        by: ['userId'],
+        _sum: {
+          points: true
+        },
+        orderBy: {
+          _sum: {
+            points: 'desc'
+          }
+        }
+      }),
+      
+      // Get recent activities with type info
+      prisma.wasteRecord.findMany({
+        where: { userId },
+        orderBy: { recordDt: 'desc' },
+        take: 5,
+        select: {
+          id: true,
+          weightG: true,
+          points: true,
+          recordDt: true,
+          wasteType: {
+            select: {
+              name: true
+            }
+          }
+        }
+      })
+    ])
 
-    // Get waste type details
-    const wasteTypes = await prisma.wasteType.findMany()
-    const wasteTypeMap = new Map(wasteTypes.map(t => [t.id, t.name]))
-
-    // Calculate stats by category
+    // Calculate stats efficiently
     let recycleWeight = 0
     let generalWeight = 0
     let totalPoints = 0
 
     wasteByType.forEach(record => {
-      const typeName = wasteTypeMap.get(record.typeId) || ''
-      const weight = record._sum.weightG || 0
-      const points = record._sum.points || 0
+      const typeName = record.wasteType.name
+      const weight = record.weightG || 0
+      const points = record.points || 0
 
       totalPoints += points
 
-      // Categorize waste (you can adjust this logic based on your waste types)
+      // Categorize waste efficiently
       if (typeName.includes('พลาสติก') || typeName.includes('กระดาษ') || 
-          typeName.includes('แก้ว') || typeName.includes('โลหะ')) {
+          typeName.includes('แก้ว') || typeName.includes('โลหะ') || 
+          typeName.includes('รีไซเคิล')) {
         recycleWeight += weight
       } else {
         generalWeight += weight
       }
     })
 
-    // Get user's rank
-    const allUserPoints = await prisma.wasteRecord.groupBy({
-      by: ['userId'],
-      _sum: {
-        points: true
-      },
-      orderBy: {
-        _sum: {
-          points: 'desc'
-        }
-      }
-    })
-
+    // Calculate user rank
     const userRank = allUserPoints.findIndex(u => u.userId === userId) + 1
 
-    // Get recent activities
-    const recentActivities = await prisma.wasteRecord.findMany({
-      where: { userId },
-      orderBy: { recordDt: 'desc' },
-      take: 5,
-      include: {
-        wasteType: true
-      }
-    })
+    // Format recent activities
+    const formattedActivities = recentActivities.map(activity => ({
+      id: activity.id,
+      type: activity.wasteType.name.includes('พลาสติก') || 
+            activity.wasteType.name.includes('กระดาษ') || 
+            activity.wasteType.name.includes('แก้ว') || 
+            activity.wasteType.name.includes('โลหะ') ||
+            activity.wasteType.name.includes('รีไซเคิล') ? 'RECYCLABLE' : 'GENERAL',
+      weight: activity.weightG || 0,
+      points: activity.points || 0,
+      createdAt: activity.recordDt.toISOString()
+    }))
 
     // Return data in the format expected by dashboard component
     return NextResponse.json({
@@ -86,16 +112,7 @@ export async function GET() {
       totalPoints: totalPoints || 0,
       rank: userRank || 0,
       userRank: userRank || 0,
-      recentActivities: recentActivities.map(activity => ({
-        id: activity.id,
-        type: activity.wasteType.name.includes('พลาสติก') || 
-              activity.wasteType.name.includes('กระดาษ') || 
-              activity.wasteType.name.includes('แก้ว') || 
-              activity.wasteType.name.includes('โลหะ') ? 'RECYCLABLE' : 'GENERAL',
-        weight: activity.weightG || 0,
-        points: activity.points || 0,
-        createdAt: activity.recordDt.toISOString()
-      }))
+      recentActivities: formattedActivities
     })
 
   } catch (error) {

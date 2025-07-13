@@ -1,148 +1,224 @@
-import { NextResponse } from 'next/server'
+import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 
-export const runtime = 'nodejs'
-export const dynamic = 'force-dynamic'
-
-export async function GET() {
+export async function GET(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions)
     
-    if (!session || !session.user) {
-      return NextResponse.json(
-        { error: 'Unauthorized' },
-        { status: 401 }
-      )
+    if (!session?.user?.email) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const userId = parseInt(session.user.id)
+    const { searchParams } = new URL(request.url)
+    const period = searchParams.get('period') || 'month'
 
-    // Get waste by type
-    const wasteByTypeData = await prisma.wasteRecord.groupBy({
-      by: ['typeId'],
-      where: { userId },
-      _sum: {
-        weightG: true,
-        points: true
-      }
+    const user = await prisma.user.findUnique({
+      where: { email: session.user.email },
+      select: { id: true, role: true }
     })
 
-    // Get waste type details
-    const wasteTypes = await prisma.wasteType.findMany()
-    const wasteTypeMap = new Map(wasteTypes.map(t => [t.id, t]))
+    if (!user) {
+      return NextResponse.json({ error: 'User not found' }, { status: 404 })
+    }
 
-    // Calculate total weight for percentage
-    const totalWeight = wasteByTypeData.reduce((sum, record) => sum + (record._sum.weightG || 0), 0)
-    const totalPoints = wasteByTypeData.reduce((sum, record) => sum + (record._sum.points || 0), 0)
+    // Calculate date range based on period
+    const now = new Date()
+    let startDate: Date
+    
+    switch (period) {
+      case 'week':
+        startDate = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000)
+        break
+      case 'year':
+        startDate = new Date(now.getFullYear(), 0, 1)
+        break
+      case 'month':
+      default:
+        startDate = new Date(now.getFullYear(), now.getMonth(), 1)
+        break
+    }
 
-    // Format waste by type data
-    const wasteByType = wasteByTypeData.map(record => {
-      const wasteType = wasteTypeMap.get(record.typeId)
-      const weight = record._sum.weightG || 0
-      return {
-        name: wasteType?.name || 'Unknown',
-        weight,
-        percentage: totalWeight > 0 ? Math.round((weight / totalWeight) * 100) : 0
-      }
-    })
-
-    // Get daily data for last 7 days
-    const sevenDaysAgo = new Date()
-    sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 6)
-    sevenDaysAgo.setHours(0, 0, 0, 0)
-
-    const dailyRecords = await prisma.wasteRecord.findMany({
+    // Get personal statistics
+    const personalRecords = await prisma.wasteRecord.findMany({
       where: {
-        userId,
+        userId: user.id,
         recordDt: {
-          gte: sevenDaysAgo
+          gte: startDate
         }
       },
-      orderBy: {
-        recordDt: 'asc'
-      }
-    })
-
-    // Group by date
-    const dailyMap = new Map<string, { weight: number, points: number }>()
-    
-    // Initialize all days with 0
-    for (let i = 0; i < 7; i++) {
-      const date = new Date(sevenDaysAgo)
-      date.setDate(date.getDate() + i)
-      const dateStr = date.toLocaleDateString('th-TH', { day: 'numeric', month: 'short' })
-      dailyMap.set(dateStr, { weight: 0, points: 0 })
-    }
-
-    // Fill with actual data
-    dailyRecords.forEach(record => {
-      const dateStr = new Date(record.recordDt).toLocaleDateString('th-TH', { day: 'numeric', month: 'short' })
-      const existing = dailyMap.get(dateStr) || { weight: 0, points: 0 }
-      dailyMap.set(dateStr, {
-        weight: existing.weight + record.weightG,
-        points: existing.points + record.points
-      })
-    })
-
-    const dailyData = Array.from(dailyMap.entries()).map(([date, data]) => ({
-      date,
-      weight: data.weight,
-      points: data.points
-    }))
-
-    // Get monthly data for last 6 months
-    const sixMonthsAgo = new Date()
-    sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 5)
-    sixMonthsAgo.setDate(1)
-    sixMonthsAgo.setHours(0, 0, 0, 0)
-
-    const monthlyRecords = await prisma.wasteRecord.findMany({
-      where: {
-        userId,
-        recordDt: {
-          gte: sixMonthsAgo
+      select: {
+        weightG: true,
+        points: true,
+        recordDt: true,
+        wasteType: {
+          select: {
+            name: true
+          }
         }
       }
     })
 
-    // Group by month
-    const monthlyMap = new Map<string, { weight: number, points: number }>()
-    
-    monthlyRecords.forEach(record => {
-      const monthStr = new Date(record.recordDt).toLocaleDateString('th-TH', { year: 'numeric', month: 'short' })
-      const existing = monthlyMap.get(monthStr) || { weight: 0, points: 0 }
-      monthlyMap.set(monthStr, {
-        weight: existing.weight + record.weightG,
-        points: existing.points + record.points
-      })
+    const personalStats = {
+      totalRecords: personalRecords.length,
+      totalWeight: personalRecords.reduce((sum, record) => sum + record.weightG, 0),
+      totalPoints: personalRecords.reduce((sum, record) => sum + record.points, 0),
+      recycleWeight: personalRecords.filter(r => r.wasteType.name.includes('รีไซเคิล') || r.wasteType.name.includes('Recycle')).reduce((sum, record) => sum + record.weightG, 0),
+      generalWeight: personalRecords.filter(r => !r.wasteType.name.includes('รีไซเคิล') && !r.wasteType.name.includes('Recycle')).reduce((sum, record) => sum + record.weightG, 0),
+      averagePerDay: personalRecords.length > 0 ? 
+        personalRecords.reduce((sum, record) => sum + record.weightG, 0) / Math.max(1, Math.ceil((now.getTime() - startDate.getTime()) / (24 * 60 * 60 * 1000))) : 0,
+      rank: 1,
+      percentile: 10
+    }
+
+    // Get user rank - simplified approach
+    const allUsers = await prisma.user.findMany({
+      select: {
+        id: true,
+        name: true,
+        wasteRecords: {
+          where: {
+            recordDt: {
+              gte: startDate
+            }
+          },
+          select: {
+            points: true,
+            weightG: true
+          }
+        }
+      }
     })
 
-    const monthlyData = Array.from(monthlyMap.entries())
-      .sort((a, b) => {
-        const dateA = new Date(a[0])
-        const dateB = new Date(b[0])
-        return dateA.getTime() - dateB.getTime()
-      })
-      .map(([month, data]) => ({
-        month,
-        weight: data.weight,
-        points: data.points
+    const userRanking = allUsers
+      .map(u => ({
+        id: u.id,
+        name: u.name,
+        points: u.wasteRecords.reduce((sum, record) => sum + record.points, 0),
+        weight: u.wasteRecords.reduce((sum, record) => sum + record.weightG, 0)
       }))
+      .sort((a, b) => b.points - a.points)
+
+    const userRankIndex = userRanking.findIndex(u => u.id === user.id)
+    personalStats.rank = userRankIndex >= 0 ? userRankIndex + 1 : 1
+    personalStats.percentile = userRanking.length > 0 ? Math.round((userRankIndex / userRanking.length) * 100) : 0
+
+    // Get school statistics
+    const schoolRecords = await prisma.wasteRecord.findMany({
+      where: {
+        recordDt: {
+          gte: startDate
+        }
+      },
+      select: {
+        weightG: true,
+        points: true,
+        user: {
+          select: {
+            name: true
+          }
+        }
+      }
+    })
+
+    const totalUsers = await prisma.user.count()
+
+    const schoolStats = {
+      totalUsers,
+      totalRecords: schoolRecords.length,
+      totalWeight: schoolRecords.reduce((sum, record) => sum + record.weightG, 0),
+      totalPoints: schoolRecords.reduce((sum, record) => sum + record.points, 0),
+      topPerformers: userRanking.slice(0, 5)
+    }
+
+         // Generate monthly data for the last 6 months
+     const monthlyData = []
+     for (let i = 5; i >= 0; i--) {
+       const monthStart = new Date(now.getFullYear(), now.getMonth() - i, 1)
+       const monthEnd = new Date(now.getFullYear(), now.getMonth() - i + 1, 0)
+       
+       const monthRecords = await prisma.wasteRecord.findMany({
+         where: {
+           userId: user.id,
+           recordDt: {
+             gte: monthStart,
+             lte: monthEnd
+           }
+         },
+         select: {
+           weightG: true,
+           points: true,
+           wasteType: {
+             select: {
+               name: true
+             }
+           }
+         }
+       })
+
+       monthlyData.push({
+         month: monthStart.toLocaleDateString('th-TH', { month: 'short', year: 'numeric' }),
+         recycleWeight: monthRecords.filter(r => r.wasteType.name.includes('รีไซเคิล') || r.wasteType.name.includes('Recycle')).reduce((sum, record) => sum + record.weightG, 0),
+         generalWeight: monthRecords.filter(r => !r.wasteType.name.includes('รีไซเคิล') && !r.wasteType.name.includes('Recycle')).reduce((sum, record) => sum + record.weightG, 0),
+         points: monthRecords.reduce((sum, record) => sum + record.points, 0)
+       })
+     }
+
+     // Generate weekly data for the last 7 days
+     const weeklyData = []
+     for (let i = 6; i >= 0; i--) {
+       const dayStart = new Date(now.getTime() - i * 24 * 60 * 60 * 1000)
+       dayStart.setHours(0, 0, 0, 0)
+       const dayEnd = new Date(dayStart.getTime() + 24 * 60 * 60 * 1000)
+       
+       const dayRecords = await prisma.wasteRecord.findMany({
+         where: {
+           userId: user.id,
+           recordDt: {
+             gte: dayStart,
+             lt: dayEnd
+           }
+         },
+         select: {
+           weightG: true,
+           points: true
+         }
+       })
+
+       weeklyData.push({
+         day: dayStart.toLocaleDateString('th-TH', { weekday: 'short' }),
+         weight: dayRecords.reduce((sum, record) => sum + record.weightG, 0),
+         points: dayRecords.reduce((sum, record) => sum + record.points, 0)
+       })
+     }
+
+    // Category breakdown
+    const categoryBreakdown = [
+      {
+        category: 'ขยะรีไซเคิล',
+        weight: personalStats.recycleWeight,
+        percentage: personalStats.totalWeight > 0 ? (personalStats.recycleWeight / personalStats.totalWeight) * 100 : 0
+      },
+      {
+        category: 'ขยะทั่วไป',
+        weight: personalStats.generalWeight,
+        percentage: personalStats.totalWeight > 0 ? (personalStats.generalWeight / personalStats.totalWeight) * 100 : 0
+      }
+    ]
 
     return NextResponse.json({
-      wasteByType,
-      dailyData,
+      personalStats,
+      schoolStats,
       monthlyData,
-      totalWeight,
-      totalPoints
+      weeklyData,
+      categoryBreakdown
     })
 
   } catch (error) {
-    console.error('Error fetching statistics:', error)
+    console.error('Statistics API error:', error)
     return NextResponse.json(
-      { error: 'Failed to fetch statistics' },
+      { error: 'เกิดข้อผิดพลาดในการดึงข้อมูลสถิติ' },
       { status: 500 }
     )
   }

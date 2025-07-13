@@ -1,356 +1,332 @@
 'use client'
 
 import { useState } from 'react'
-import { signIn } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { Leaf, Users, Recycle, Award, Globe, Github } from 'lucide-react'
 
-export const dynamic = 'force-dynamic'
+interface FormData {
+  email: string
+  password: string
+  confirmPassword: string
+  name: string
+  role: 'STUDENT' | 'TEACHER'
+  grade?: string
+  classSection?: string
+}
 
-export default function SignUp() {
-  const [formData, setFormData] = useState({
-    name: '',
+export default function SignupPage() {
+  const router = useRouter()
+  const [formData, setFormData] = useState<FormData>({
     email: '',
     password: '',
     confirmPassword: '',
-    role: 'STUDENT',
-    grade: '',
-    classSection: ''
+    name: '',
+    role: 'STUDENT'
   })
-  const [isLoading, setIsLoading] = useState(false)
+  const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
-  const router = useRouter()
+  const [success, setSuccess] = useState('')
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setIsLoading(true)
-    setError('')
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+    const { name, value } = e.target
+    setFormData(prev => ({
+      ...prev,
+      [name]: value
+    }))
+  }
+
+  const validateForm = (): boolean => {
+    if (!formData.email || !formData.password || !formData.confirmPassword || !formData.name) {
+      setError('กรุณากรอกข้อมูลให้ครบถ้วน')
+      return false
+    }
 
     if (formData.password !== formData.confirmPassword) {
       setError('รหัสผ่านไม่ตรงกัน')
-      setIsLoading(false)
-      return
+      return false
     }
 
+    if (formData.password.length < 6) {
+      setError('รหัสผ่านต้องมีอย่างน้อย 6 ตัวอักษร')
+      return false
+    }
+
+    if (formData.role === 'STUDENT' && !formData.grade) {
+      setError('กรุณาเลือกชั้นเรียน')
+      return false
+    }
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+    if (!emailRegex.test(formData.email)) {
+      setError('รูปแบบอีเมลไม่ถูกต้อง')
+      return false
+    }
+
+    return true
+  }
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setError('')
+    setSuccess('')
+
+    if (!validateForm()) return
+
+    setLoading(true)
+
     try {
-      const res = await fetch('/api/auth/register', {
+      const response = await fetch('/api/auth/signup', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          name: formData.name,
-          email: formData.email,
-          password: formData.password,
-          role: formData.role,
-          grade: formData.role === 'STUDENT' ? parseInt(formData.grade) : null,
-          classSection: formData.role === 'STUDENT' ? formData.classSection : null
-        })
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(formData),
       })
 
-      const data = await res.json()
+      const data = await response.json()
 
-      if (res.ok) {
-        // Auto login after successful registration
-        const result = await signIn('credentials', {
-          email: formData.email,
-          password: formData.password,
-          redirect: false,
-        })
-
-        if (result?.ok) {
-          router.push('/dashboard')
-        }
+      if (response.ok) {
+        setSuccess('สมัครสมาชิกสำเร็จ! กำลังเปลี่ยนหน้า...')
+        setTimeout(() => {
+          router.push('/auth/signin')
+        }, 2000)
       } else {
         setError(data.error || 'เกิดข้อผิดพลาดในการสมัครสมาชิก')
       }
-    } catch {
-      setError('เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง')
+    } catch (error) {
+      setError('เกิดข้อผิดพลาดในการเชื่อมต่อ')
     } finally {
-      setIsLoading(false)
+      setLoading(false)
     }
   }
 
-  const handleSocialLogin = (provider: string) => {
-    signIn(provider, { callbackUrl: '/dashboard' })
-  }
-
   return (
-    <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-teal-50 to-cyan-50 flex items-center justify-center px-4 py-8">
-      {/* Background Pattern */}
+    <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-teal-50 to-cyan-50 dark:from-gray-900 dark:via-emerald-900 dark:to-teal-900 bg-pattern flex items-center justify-center p-4">
+      {/* Premium Background Elements */}
       <div className="absolute inset-0 overflow-hidden">
-        <div className="absolute -top-40 -right-40 w-80 h-80 bg-green-200 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-blob"></div>
-        <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-blue-200 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-blob animation-delay-2000"></div>
-        <div className="absolute top-40 left-40 w-80 h-80 bg-teal-200 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-blob animation-delay-4000"></div>
+        <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-emerald-400/20 rounded-full blur-3xl animate-float"></div>
+        <div className="absolute top-3/4 right-1/4 w-80 h-80 bg-teal-400/20 rounded-full blur-3xl animate-float animation-delay-2000"></div>
+        <div className="absolute bottom-1/4 left-1/3 w-72 h-72 bg-cyan-400/20 rounded-full blur-3xl animate-float animation-delay-1000"></div>
       </div>
 
-      <div className="relative max-w-md w-full">
-        {/* Header Section */}
+      <div className="relative z-10 w-full max-w-md">
+        {/* Premium Header */}
         <div className="text-center mb-8">
-          <div className="flex justify-center mb-4">
-            <div className="relative">
-              <div className="w-16 h-16 bg-gradient-to-r from-green-500 to-emerald-600 rounded-2xl flex items-center justify-center shadow-lg">
-                <Leaf className="w-8 h-8 text-white" />
-              </div>
-              <div className="absolute -top-1 -right-1 w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center">
-                <Globe className="w-3 h-3 text-white" />
-              </div>
-            </div>
+          <div className="mx-auto w-20 h-20 bg-gradient-luxury rounded-3xl flex items-center justify-center shadow-2xl animate-pulse-luxury mb-6">
+            <span className="text-4xl">🌱</span>
           </div>
-          <h1 className="text-3xl font-bold bg-gradient-to-r from-green-600 to-emerald-600 bg-clip-text text-transparent mb-2">
-            เข้าร่วมกับเรา
+          <h1 className="text-4xl font-bold text-gradient-luxury mb-4">
+            สมัครสมาชิก
           </h1>
-          <p className="text-gray-600 text-lg">
-            Zero Waste School System
-          </p>
-          <p className="text-sm text-gray-500 mt-2">
-            ร่วมกันสร้างโลกที่ยั่งยืน เริ่มต้นจากโรงเรียน
+          <p className="text-xl text-gray-600 dark:text-gray-300 font-medium">
+            เข้าร่วมระบบ Zero Waste School
           </p>
         </div>
 
-        {/* Features Preview */}
-        <div className="grid grid-cols-3 gap-4 mb-8">
-          <div className="text-center">
-            <div className="w-12 h-12 bg-green-100 rounded-xl flex items-center justify-center mx-auto mb-2">
-              <Recycle className="w-6 h-6 text-green-600" />
-            </div>
-            <p className="text-xs text-gray-600">บันทึกขยะ</p>
-          </div>
-          <div className="text-center">
-            <div className="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center mx-auto mb-2">
-              <Users className="w-6 h-6 text-blue-600" />
-            </div>
-            <p className="text-xs text-gray-600">แข่งขันกัน</p>
-          </div>
-          <div className="text-center">
-            <div className="w-12 h-12 bg-purple-100 rounded-xl flex items-center justify-center mx-auto mb-2">
-              <Award className="w-6 h-6 text-purple-600" />
-            </div>
-            <p className="text-xs text-gray-600">รับเหรียญ</p>
-          </div>
-        </div>
-
-        {/* Main Form Card */}
-        <div className="bg-white/80 backdrop-blur-sm rounded-3xl shadow-xl border border-white/50 p-8">
-          {/* Social Login Buttons */}
-          <div className="space-y-3 mb-6">
-            <button
-              onClick={() => handleSocialLogin('google')}
-              className="w-full flex items-center justify-center gap-3 bg-white border-2 border-gray-200 rounded-2xl py-3 px-4 hover:border-gray-300 hover:shadow-md transition duration-200 group"
-            >
-              <div className="w-5 h-5 bg-gradient-to-r from-red-500 via-yellow-500 to-blue-500 rounded-full"></div>
-              <span className="font-medium text-gray-700 group-hover:text-gray-900">ดำเนินการต่อด้วย Google</span>
-            </button>
-            
-            <button
-              onClick={() => handleSocialLogin('github')}
-              className="w-full flex items-center justify-center gap-3 bg-gray-900 rounded-2xl py-3 px-4 hover:bg-gray-800 transition duration-200 group"
-            >
-              <Github className="w-5 h-5 text-white" />
-              <span className="font-medium text-white">ดำเนินการต่อด้วย GitHub</span>
-            </button>
-          </div>
-
-          {/* Divider */}
-          <div className="relative my-6">
-            <div className="absolute inset-0 flex items-center">
-              <div className="w-full border-t border-gray-200"></div>
-            </div>
-            <div className="relative flex justify-center text-sm">
-              <span className="px-4 bg-white text-gray-500">หรือสมัครด้วยอีเมล</span>
-            </div>
-          </div>
-
-          {/* Registration Form */}
-          <form onSubmit={handleSubmit} className="space-y-4">
-            {error && (
-              <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-2xl text-sm">
-                {error}
-              </div>
-            )}
-
+        {/* Premium Glass Form */}
+        <div className="glass-card p-8">
+          <form onSubmit={handleSubmit} className="space-y-6">
+            {/* Name Field */}
             <div>
-              <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-2">
+              <label htmlFor="name" className="form-label">
                 ชื่อ-นามสกุล
               </label>
               <input
                 id="name"
+                name="name"
                 type="text"
-                value={formData.name}
-                onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
                 required
-                className="w-full px-4 py-3 border border-gray-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition duration-200"
+                value={formData.name}
+                onChange={handleInputChange}
+                className="form-input w-full"
                 placeholder="กรอกชื่อ-นามสกุล"
               />
             </div>
 
+            {/* Email Field */}
             <div>
-              <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
+              <label htmlFor="email" className="form-label">
                 อีเมล
               </label>
               <input
                 id="email"
+                name="email"
                 type="email"
-                value={formData.email}
-                onChange={(e) => setFormData(prev => ({ ...prev, email: e.target.value }))}
                 required
-                className="w-full px-4 py-3 border border-gray-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition duration-200"
-                placeholder="example@school.ac.th"
+                value={formData.email}
+                onChange={handleInputChange}
+                className="form-input w-full"
+                placeholder="กรอกอีเมล"
               />
             </div>
 
+            {/* Role Selection */}
             <div>
-              <label htmlFor="role" className="block text-sm font-medium text-gray-700 mb-2">
+              <label htmlFor="role" className="form-label">
                 ประเภทผู้ใช้
               </label>
               <select
                 id="role"
+                name="role"
                 value={formData.role}
-                onChange={(e) => setFormData(prev => ({ ...prev, role: e.target.value }))}
-                className="w-full px-4 py-3 border border-gray-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition duration-200"
+                onChange={handleInputChange}
+                className="form-input w-full"
               >
-                <option value="STUDENT">นักเรียน</option>
-                <option value="TEACHER">ครู</option>
+                <option value="STUDENT">🎓 นักเรียน</option>
+                <option value="TEACHER">👨‍🏫 ครู</option>
               </select>
             </div>
 
+            {/* Grade Selection for Students */}
             {formData.role === 'STUDENT' && (
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label htmlFor="grade" className="block text-sm font-medium text-gray-700 mb-2">
-                    ชั้น
+                  <label htmlFor="grade" className="form-label">
+                    ชั้นเรียน
                   </label>
                   <select
                     id="grade"
-                    value={formData.grade}
-                    onChange={(e) => setFormData(prev => ({ ...prev, grade: e.target.value }))}
+                    name="grade"
+                    value={formData.grade || ''}
+                    onChange={handleInputChange}
+                    className="form-input w-full"
                     required
-                    className="w-full px-4 py-3 border border-gray-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition duration-200"
                   >
                     <option value="">เลือกชั้น</option>
-                    <option value="1">ม.1</option>
-                    <option value="2">ม.2</option>
-                    <option value="3">ม.3</option>
-                    <option value="4">ม.4</option>
-                    <option value="5">ม.5</option>
-                    <option value="6">ม.6</option>
+                    <option value="1">มัธยมศึกษาปีที่ 1</option>
+                    <option value="2">มัธยมศึกษาปีที่ 2</option>
+                    <option value="3">มัธยมศึกษาปีที่ 3</option>
+                    <option value="4">มัธยมศึกษาปีที่ 4</option>
+                    <option value="5">มัธยมศึกษาปีที่ 5</option>
+                    <option value="6">มัธยมศึกษาปีที่ 6</option>
                   </select>
                 </div>
                 <div>
-                  <label htmlFor="classSection" className="block text-sm font-medium text-gray-700 mb-2">
+                  <label htmlFor="classSection" className="form-label">
                     ห้อง
                   </label>
                   <input
                     id="classSection"
+                    name="classSection"
                     type="text"
-                    value={formData.classSection}
-                    onChange={(e) => setFormData(prev => ({ ...prev, classSection: e.target.value }))}
-                    className="w-full px-4 py-3 border border-gray-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition duration-200"
+                    value={formData.classSection || ''}
+                    onChange={handleInputChange}
+                    className="form-input w-full"
                     placeholder="เช่น 1, 2, 3"
                   />
                 </div>
               </div>
             )}
 
+            {/* Password Fields */}
             <div>
-              <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-2">
+              <label htmlFor="password" className="form-label">
                 รหัสผ่าน
               </label>
               <input
                 id="password"
+                name="password"
                 type="password"
-                value={formData.password}
-                onChange={(e) => setFormData(prev => ({ ...prev, password: e.target.value }))}
                 required
-                className="w-full px-4 py-3 border border-gray-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition duration-200"
-                placeholder="อย่างน้อย 6 ตัวอักษร"
-                minLength={6}
+                value={formData.password}
+                onChange={handleInputChange}
+                className="form-input w-full"
+                placeholder="กรอกรหัสผ่าน (อย่างน้อย 6 ตัวอักษร)"
               />
             </div>
 
             <div>
-              <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700 mb-2">
+              <label htmlFor="confirmPassword" className="form-label">
                 ยืนยันรหัสผ่าน
               </label>
               <input
                 id="confirmPassword"
+                name="confirmPassword"
                 type="password"
-                value={formData.confirmPassword}
-                onChange={(e) => setFormData(prev => ({ ...prev, confirmPassword: e.target.value }))}
                 required
-                className="w-full px-4 py-3 border border-gray-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition duration-200"
+                value={formData.confirmPassword}
+                onChange={handleInputChange}
+                className="form-input w-full"
                 placeholder="กรอกรหัสผ่านอีกครั้ง"
               />
             </div>
 
+            {/* Error Message */}
+            {error && (
+              <div className="glass-card bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800 p-4">
+                <div className="flex items-center">
+                  <span className="text-2xl mr-3">❌</span>
+                  <p className="text-red-600 dark:text-red-400 font-medium">{error}</p>
+                </div>
+              </div>
+            )}
+
+            {/* Success Message */}
+            {success && (
+              <div className="glass-card bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800 p-4">
+                <div className="flex items-center">
+                  <span className="text-2xl mr-3">✅</span>
+                  <p className="text-green-600 dark:text-green-400 font-medium">{success}</p>
+                </div>
+              </div>
+            )}
+
+            {/* Submit Button */}
             <button
               type="submit"
-              disabled={isLoading}
-              className="w-full bg-gradient-to-r from-green-600 to-emerald-600 text-white py-3 px-4 rounded-2xl hover:from-green-700 hover:to-emerald-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition duration-200 font-medium shadow-lg"
+              disabled={loading}
+              className="btn btn-primary w-full text-lg py-4 disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {isLoading ? (
-                <div className="flex items-center justify-center gap-2">
-                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+              {loading ? (
+                <div className="flex items-center justify-center">
+                  <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-white mr-3"></div>
                   กำลังสมัครสมาชิก...
                 </div>
               ) : (
-                'สมัครสมาชิก'
+                <>
+                  <span className="mr-3">🚀</span>
+                  สมัครสมาชิก
+                </>
               )}
             </button>
+
+            {/* Divider */}
+            <div className="relative">
+              <div className="absolute inset-0 flex items-center">
+                <div className="w-full border-t border-gray-300 dark:border-gray-600"></div>
+              </div>
+              <div className="relative flex justify-center text-sm">
+                <span className="px-4 bg-white dark:bg-gray-800 text-gray-500 dark:text-gray-400 font-medium">
+                  หรือ
+                </span>
+              </div>
+            </div>
+
+            {/* Sign In Link */}
+            <div className="text-center">
+              <p className="text-gray-600 dark:text-gray-300 font-medium">
+                มีบัญชีแล้ว?{' '}
+                <Link 
+                  href="/auth/signin" 
+                  className="text-gradient font-bold hover:underline transition-all duration-300"
+                >
+                  เข้าสู่ระบบ
+                </Link>
+              </p>
+            </div>
           </form>
-
-          {/* Footer */}
-          <div className="mt-6 text-center">
-            <p className="text-gray-600 text-sm">
-              มีบัญชีอยู่แล้ว?{' '}
-              <Link href="/auth/signin" className="text-green-600 hover:text-green-700 font-semibold">
-                เข้าสู่ระบบ
-              </Link>
-            </p>
-          </div>
-
-          <div className="mt-4 text-center">
-            <Link href="/" className="text-blue-600 hover:text-blue-700 text-sm">
-              ← กลับไปหน้าแรก
-            </Link>
-          </div>
         </div>
 
-        {/* Bottom Message */}
-        <div className="text-center mt-6">
-          <p className="text-xs text-gray-500">
-            การสมัครสมาชิกแสดงว่าคุณยอมรับ{' '}
-            <a href="#" className="text-green-600 hover:text-green-700">เงื่อนไขการใช้งาน</a>
-            {' '}และ{' '}
-            <a href="#" className="text-green-600 hover:text-green-700">นโยบายความเป็นส่วนตัว</a>
+        {/* Premium Footer */}
+        <div className="text-center mt-8">
+          <p className="text-gray-500 dark:text-gray-400 text-sm font-medium">
+            การสมัครสมาชิกแสดงว่าคุณยอมรับ
+          </p>
+          <p className="text-gray-500 dark:text-gray-400 text-sm font-medium">
+            <span className="text-gradient">เงื่อนไขการใช้งาน</span> และ <span className="text-gradient">นโยบายความเป็นส่วนตัว</span>
           </p>
         </div>
       </div>
-
-      <style jsx>{`
-        @keyframes blob {
-          0% {
-            transform: translate(0px, 0px) scale(1);
-          }
-          33% {
-            transform: translate(30px, -50px) scale(1.1);
-          }
-          66% {
-            transform: translate(-20px, 20px) scale(0.9);
-          }
-          100% {
-            transform: translate(0px, 0px) scale(1);
-          }
-        }
-        .animate-blob {
-          animation: blob 7s infinite;
-        }
-        .animation-delay-2000 {
-          animation-delay: 2s;
-        }
-        .animation-delay-4000 {
-          animation-delay: 4s;
-        }
-      `}</style>
     </div>
   )
 } 

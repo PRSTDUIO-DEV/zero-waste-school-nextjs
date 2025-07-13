@@ -2,223 +2,446 @@
 
 import { useState, useEffect } from 'react'
 import { useSession } from 'next-auth/react'
-import { useRouter } from 'next/navigation'
+import { redirect } from 'next/navigation'
+import Link from 'next/link'
 
-export const dynamic = 'force-dynamic'
-import {
-  BarChart, Bar, LineChart, Line, PieChart, Pie, Cell,
-  XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer
-} from 'recharts'
-
-interface WasteByType {
-  name: string
-  weight: number
-  percentage: number
+interface StatisticsData {
+  personalStats: {
+    totalRecords: number
+    totalWeight: number
+    totalPoints: number
+    recycleWeight: number
+    generalWeight: number
+    averagePerDay: number
+    rank: number
+    percentile: number
+  }
+  schoolStats: {
+    totalUsers: number
+    totalRecords: number
+    totalWeight: number
+    totalPoints: number
+    topPerformers: Array<{
+      name: string
+      points: number
+      weight: number
+    }>
+  }
+  monthlyData: Array<{
+    month: string
+    recycleWeight: number
+    generalWeight: number
+    points: number
+  }>
+  weeklyData: Array<{
+    day: string
+    weight: number
+    points: number
+  }>
+  categoryBreakdown: Array<{
+    category: string
+    weight: number
+    percentage: number
+  }>
 }
 
-interface DailyData {
-  date: string
-  weight: number
-  points: number
-}
-
-interface MonthlyData {
-  month: string
-  weight: number
-  points: number
-}
-
-export default function Statistics() {
+export default function StatisticsPage() {
   const { data: session, status } = useSession()
-  const router = useRouter()
-  const [wasteByType, setWasteByType] = useState<WasteByType[]>([])
-  const [dailyData, setDailyData] = useState<DailyData[]>([])
-  const [monthlyData, setMonthlyData] = useState<MonthlyData[]>([])
-  const [totalWeight, setTotalWeight] = useState(0)
-  const [totalPoints, setTotalPoints] = useState(0)
+  const [stats, setStats] = useState<StatisticsData | null>(null)
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState('')
+  const [selectedPeriod, setSelectedPeriod] = useState<'week' | 'month' | 'year'>('month')
 
   useEffect(() => {
-    if (status === 'unauthenticated') {
-      router.push('/auth/signin')
-    } else if (status === 'authenticated') {
-      fetchStatistics()
+    if (status === 'loading') return
+    if (!session) {
+      redirect('/auth/signin')
     }
-  }, [status, router])
+
+    fetchStatistics()
+  }, [session, status, selectedPeriod])
 
   const fetchStatistics = async () => {
     try {
-      const res = await fetch('/api/statistics')
-      const data = await res.json()
-      
-      if (res.ok) {
-        setWasteByType(data.wasteByType)
-        setDailyData(data.dailyData)
-        setMonthlyData(data.monthlyData)
-        setTotalWeight(data.totalWeight)
-        setTotalPoints(data.totalPoints)
+      setLoading(true)
+      const response = await fetch(`/api/statistics?period=${selectedPeriod}`)
+      if (response.ok) {
+        const data = await response.json()
+        setStats(data)
+      } else {
+        setError('ไม่สามารถโหลดข้อมูลสถิติได้')
       }
     } catch (error) {
-      console.error('Error fetching statistics:', error)
+      setError('เกิดข้อผิดพลาดในการโหลดข้อมูล')
     } finally {
       setLoading(false)
     }
   }
 
   if (status === 'loading' || loading) {
-    return <div className="min-h-screen flex items-center justify-center">Loading...</div>
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-teal-50 to-cyan-50 dark:from-gray-900 dark:via-emerald-900 dark:to-teal-900 bg-pattern flex items-center justify-center">
+        <div className="glass-card p-12 text-center">
+          <div className="animate-spin rounded-full h-20 w-20 border-b-4 border-emerald-500 mx-auto mb-6"></div>
+          <h2 className="text-3xl font-bold text-gradient mb-4">กำลังโหลดข้อมูล...</h2>
+          <p className="text-xl text-gray-600 dark:text-gray-300">กรุณารอสักครู่</p>
+        </div>
+      </div>
+    )
   }
 
-  if (!session) return null
+  if (error) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-teal-50 to-cyan-50 dark:from-gray-900 dark:via-emerald-900 dark:to-teal-900 bg-pattern flex items-center justify-center">
+        <div className="glass-card p-12 text-center">
+          <div className="text-8xl mb-6">❌</div>
+          <h2 className="text-3xl font-bold text-red-600 mb-4">เกิดข้อผิดพลาด</h2>
+          <p className="text-xl text-gray-600 dark:text-gray-300 mb-8">{error}</p>
+          <button
+            onClick={() => window.location.reload()}
+            className="btn btn-primary px-8 py-4 text-lg"
+          >
+            ลองใหม่อีกครั้ง
+          </button>
+        </div>
+      </div>
+    )
+  }
 
-  const COLORS = ['#10B981', '#3B82F6', '#F59E0B', '#EF4444', '#8B5CF6', '#EC4899']
+  if (!stats) return null
+
+  const user = session?.user
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <header className="bg-white shadow">
+    <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-teal-50 to-cyan-50 dark:from-gray-900 dark:via-emerald-900 dark:to-teal-900 bg-pattern">
+      {/* Premium Header */}
+      <header className="glass-header sticky top-0 z-50 border-b border-white/20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center py-6">
-            <h1 className="text-2xl font-bold text-gray-900">สถิติการทิ้งขยะ</h1>
-            <button
-              onClick={() => router.push('/dashboard')}
-              className="text-gray-600 hover:text-gray-900"
-            >
-              ← กลับสู่หน้าหลัก
-            </button>
+            <div className="flex items-center space-x-4">
+              <Link href="/dashboard" className="glass-button p-3 hover:scale-110 transition-transform">
+                <span className="text-2xl">←</span>
+              </Link>
+              <div className="w-16 h-16 bg-gradient-luxury rounded-3xl flex items-center justify-center shadow-2xl animate-pulse-luxury">
+                <span className="text-3xl">📊</span>
+              </div>
+              <div>
+                <h1 className="text-4xl font-bold text-gradient-luxury">
+                  สถิติและข้อมูล
+                </h1>
+                <p className="text-sm text-emerald-600 dark:text-emerald-400 font-semibold tracking-wide">
+                  📈 Analytics & Insights
+                </p>
+              </div>
+            </div>
+            <div className="flex items-center space-x-4">
+              <select
+                value={selectedPeriod}
+                onChange={(e) => setSelectedPeriod(e.target.value as 'week' | 'month' | 'year')}
+                className="glass-button px-4 py-2 font-semibold"
+              >
+                <option value="week">สัปดาห์นี้</option>
+                <option value="month">เดือนนี้</option>
+                <option value="year">ปีนี้</option>
+              </select>
+            </div>
           </div>
         </div>
       </header>
 
-      {/* Main Content */}
-      <main className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
-        <div className="px-4 py-6 sm:px-0">
-          {/* Summary Cards */}
-          <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 mb-8">
-            <div className="bg-white overflow-hidden shadow rounded-lg">
-              <div className="p-5">
-                <div className="flex items-center">
-                  <div className="flex-shrink-0">
-                    <div className="text-3xl">⚖️</div>
-                  </div>
-                  <div className="ml-5 w-0 flex-1">
-                    <dl>
-                      <dt className="text-sm font-medium text-gray-500 truncate">
-                        น้ำหนักรวมทั้งหมด
-                      </dt>
-                      <dd className="text-2xl font-bold text-gray-900">
-                        {(totalWeight / 1000).toFixed(2)} กก.
-                      </dd>
-                    </dl>
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="space-y-8">
+          {/* Personal Performance Overview */}
+          <div className="glass-card">
+            <div className="bg-gradient-luxury text-white px-8 py-6 rounded-t-3xl">
+              <h2 className="text-3xl font-bold flex items-center">
+                <span className="mr-4 animate-float">🎯</span>
+                ผลงานส่วนตัว
+              </h2>
+            </div>
+            <div className="p-8">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                <div className="stat-card group">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="stat-label text-emerald-600 dark:text-emerald-400">จำนวนครั้ง</p>
+                      <p className="stat-number">{stats.personalStats.totalRecords}</p>
+                      <p className="text-lg font-semibold text-gray-600 dark:text-gray-300">บันทึก</p>
+                    </div>
+                    <div className="text-6xl group-hover:scale-110 transition-transform animate-float">📝</div>
                   </div>
                 </div>
-              </div>
-            </div>
 
-            <div className="bg-white overflow-hidden shadow rounded-lg">
-              <div className="p-5">
-                <div className="flex items-center">
-                  <div className="flex-shrink-0">
-                    <div className="text-3xl">⭐</div>
+                <div className="stat-card group">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="stat-label text-blue-600 dark:text-blue-400">น้ำหนักรวม</p>
+                      <p className="stat-number text-blue-600 dark:text-blue-400">
+                        {(stats.personalStats.totalWeight / 1000).toFixed(2)}
+                      </p>
+                      <p className="text-lg font-semibold text-gray-600 dark:text-gray-300">กิโลกรัม</p>
+                    </div>
+                    <div className="text-6xl group-hover:scale-110 transition-transform animate-float animation-delay-1000">⚖️</div>
                   </div>
-                  <div className="ml-5 w-0 flex-1">
-                    <dl>
-                      <dt className="text-sm font-medium text-gray-500 truncate">
-                        คะแนนรวมทั้งหมด
-                      </dt>
-                      <dd className="text-2xl font-bold text-gray-900">
-                        {totalPoints.toLocaleString()} คะแนน
-                      </dd>
-                    </dl>
+                </div>
+
+                <div className="stat-card group">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="stat-label text-purple-600 dark:text-purple-400">คะแนนรวม</p>
+                      <p className="stat-number text-purple-600 dark:text-purple-400">
+                        {stats.personalStats.totalPoints.toLocaleString()}
+                      </p>
+                      <p className="text-lg font-semibold text-gray-600 dark:text-gray-300">คะแนน</p>
+                    </div>
+                    <div className="text-6xl group-hover:scale-110 transition-transform animate-float animation-delay-2000">⭐</div>
+                  </div>
+                </div>
+
+                <div className="stat-card group">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="stat-label text-orange-600 dark:text-orange-400">อันดับ</p>
+                      <p className="stat-number text-orange-600 dark:text-orange-400">
+                        #{stats.personalStats.rank}
+                      </p>
+                      <p className="text-lg font-semibold text-gray-600 dark:text-gray-300">
+                        Top {stats.personalStats.percentile}%
+                      </p>
+                    </div>
+                    <div className="text-6xl group-hover:scale-110 transition-transform animate-float animation-delay-3000">🏆</div>
                   </div>
                 </div>
               </div>
             </div>
           </div>
 
-          {/* Charts */}
-          <div className="space-y-8">
-            {/* Waste by Type Pie Chart */}
-            <div className="bg-white shadow rounded-lg p-6">
-              <h3 className="text-lg font-medium text-gray-900 mb-4">สัดส่วนขยะแต่ละประเภท</h3>
-              {wasteByType.length > 0 ? (
-                <ResponsiveContainer width="100%" height={300}>
-                  <PieChart>
-                    <Pie
-                      data={wasteByType}
-                      cx="50%"
-                      cy="50%"
-                      labelLine={false}
-                      label={({ name, percentage }) => `${name} ${percentage}%`}
-                      outerRadius={80}
-                      fill="#8884d8"
-                      dataKey="weight"
-                    >
-                      {wasteByType.map((entry, index) => (
-                        <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                      ))}
-                    </Pie>
-                    <Tooltip formatter={(value: number) => `${(value / 1000).toFixed(2)} กก.`} />
-                  </PieChart>
-                </ResponsiveContainer>
-              ) : (
-                <div className="text-center py-8 text-gray-500">ยังไม่มีข้อมูล</div>
-              )}
+          {/* Waste Type Breakdown */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            <div className="glass-card">
+              <div className="bg-gradient-primary text-white px-8 py-6 rounded-t-3xl">
+                <h3 className="text-2xl font-bold flex items-center">
+                  <span className="mr-3 animate-float">♻️</span>
+                  ประเภทขยะ
+                </h3>
+              </div>
+              <div className="p-8">
+                <div className="space-y-6">
+                  <div className="flex items-center justify-between p-4 glass-card">
+                    <div className="flex items-center space-x-4">
+                      <div className="text-4xl">♻️</div>
+                      <div>
+                        <p className="text-xl font-bold text-emerald-600 dark:text-emerald-400">
+                          ขยะรีไซเคิล
+                        </p>
+                        <p className="text-sm text-gray-500 dark:text-gray-400">
+                          {((stats.personalStats.recycleWeight / stats.personalStats.totalWeight) * 100).toFixed(1)}%
+                        </p>
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-2xl font-bold text-emerald-600 dark:text-emerald-400">
+                        {(stats.personalStats.recycleWeight / 1000).toFixed(2)}
+                      </p>
+                      <p className="text-sm text-gray-500 dark:text-gray-400">กิโลกรัม</p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center justify-between p-4 glass-card">
+                    <div className="flex items-center space-x-4">
+                      <div className="text-4xl">🗑️</div>
+                      <div>
+                        <p className="text-xl font-bold text-orange-600 dark:text-orange-400">
+                          ขยะทั่วไป
+                        </p>
+                        <p className="text-sm text-gray-500 dark:text-gray-400">
+                          {((stats.personalStats.generalWeight / stats.personalStats.totalWeight) * 100).toFixed(1)}%
+                        </p>
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-2xl font-bold text-orange-600 dark:text-orange-400">
+                        {(stats.personalStats.generalWeight / 1000).toFixed(2)}
+                      </p>
+                      <p className="text-sm text-gray-500 dark:text-gray-400">กิโลกรัม</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
             </div>
 
-            {/* Daily Trend Line Chart */}
-            <div className="bg-white shadow rounded-lg p-6">
-              <h3 className="text-lg font-medium text-gray-900 mb-4">แนวโน้มรายวัน (7 วันล่าสุด)</h3>
-              {dailyData.length > 0 ? (
-                <ResponsiveContainer width="100%" height={300}>
-                  <LineChart data={dailyData}>
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="date" />
-                    <YAxis yAxisId="left" />
-                    <YAxis yAxisId="right" orientation="right" />
-                    <Tooltip />
-                    <Legend />
-                    <Line
-                      yAxisId="left"
-                      type="monotone"
-                      dataKey="weight"
-                      stroke="#10B981"
-                      name="น้ำหนัก (กรัม)"
-                      strokeWidth={2}
-                    />
-                    <Line
-                      yAxisId="right"
-                      type="monotone"
-                      dataKey="points"
-                      stroke="#3B82F6"
-                      name="คะแนน"
-                      strokeWidth={2}
-                    />
-                  </LineChart>
-                </ResponsiveContainer>
-              ) : (
-                <div className="text-center py-8 text-gray-500">ยังไม่มีข้อมูล</div>
-              )}
+            <div className="glass-card">
+              <div className="bg-gradient-secondary text-white px-8 py-6 rounded-t-3xl">
+                <h3 className="text-2xl font-bold flex items-center">
+                  <span className="mr-3 animate-float">📈</span>
+                  ค่าเฉลี่ยต่อวัน
+                </h3>
+              </div>
+              <div className="p-8">
+                <div className="text-center">
+                  <div className="text-8xl mb-6 animate-pulse-luxury">📊</div>
+                  <p className="text-4xl font-bold text-gradient mb-4">
+                    {(stats.personalStats.averagePerDay / 1000).toFixed(2)}
+                  </p>
+                  <p className="text-xl text-gray-600 dark:text-gray-300 font-semibold">
+                    กิโลกรัม/วัน
+                  </p>
+                  <div className="mt-6 p-4 glass-card">
+                    <p className="text-lg text-gray-500 dark:text-gray-400">
+                      {stats.personalStats.averagePerDay > 1000 ? 
+                        '🎉 ยอดเยี่ยม! คุณมีส่วนร่วมมาก' : 
+                        '💪 ดีมาก! เพิ่มความพยายามต่อไป'}
+                    </p>
+                  </div>
+                </div>
+              </div>
             </div>
+          </div>
 
-            {/* Monthly Bar Chart */}
-            <div className="bg-white shadow rounded-lg p-6">
-              <h3 className="text-lg font-medium text-gray-900 mb-4">สรุปรายเดือน</h3>
-              {monthlyData.length > 0 ? (
-                <ResponsiveContainer width="100%" height={300}>
-                  <BarChart data={monthlyData}>
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="month" />
-                    <YAxis />
-                    <Tooltip />
-                    <Legend />
-                    <Bar dataKey="weight" fill="#10B981" name="น้ำหนัก (กรัม)" />
-                    <Bar dataKey="points" fill="#3B82F6" name="คะแนน" />
-                  </BarChart>
-                </ResponsiveContainer>
-              ) : (
-                <div className="text-center py-8 text-gray-500">ยังไม่มีข้อมูล</div>
-              )}
+          {/* School Statistics */}
+          <div className="glass-card">
+            <div className="bg-gradient-accent text-white px-8 py-6 rounded-t-3xl">
+              <h2 className="text-3xl font-bold flex items-center">
+                <span className="mr-4 animate-float">🏫</span>
+                สถิติโรงเรียน
+              </h2>
+            </div>
+            <div className="p-8">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                <div className="stat-card">
+                  <div className="text-center">
+                    <div className="text-5xl mb-4 animate-float">👥</div>
+                    <p className="stat-number text-blue-600 dark:text-blue-400">
+                      {stats.schoolStats.totalUsers}
+                    </p>
+                    <p className="stat-label">ผู้ใช้งาน</p>
+                  </div>
+                </div>
+
+                <div className="stat-card">
+                  <div className="text-center">
+                    <div className="text-5xl mb-4 animate-float animation-delay-1000">📝</div>
+                    <p className="stat-number text-emerald-600 dark:text-emerald-400">
+                      {stats.schoolStats.totalRecords}
+                    </p>
+                    <p className="stat-label">บันทึกรวม</p>
+                  </div>
+                </div>
+
+                <div className="stat-card">
+                  <div className="text-center">
+                    <div className="text-5xl mb-4 animate-float animation-delay-2000">⚖️</div>
+                    <p className="stat-number text-purple-600 dark:text-purple-400">
+                      {(stats.schoolStats.totalWeight / 1000).toFixed(1)}
+                    </p>
+                    <p className="stat-label">กิโลกรัม</p>
+                  </div>
+                </div>
+
+                <div className="stat-card">
+                  <div className="text-center">
+                    <div className="text-5xl mb-4 animate-float animation-delay-3000">⭐</div>
+                    <p className="stat-number text-orange-600 dark:text-orange-400">
+                      {stats.schoolStats.totalPoints.toLocaleString()}
+                    </p>
+                    <p className="stat-label">คะแนนรวม</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Top Performers */}
+              <div className="glass-card">
+                <div className="bg-gradient-luxury text-white px-6 py-4 rounded-t-2xl">
+                  <h4 className="text-xl font-bold flex items-center">
+                    <span className="mr-3">🏆</span>
+                    ผู้ทำคะแนนสูงสุด
+                  </h4>
+                </div>
+                <div className="p-6">
+                  <div className="space-y-4">
+                    {stats.schoolStats.topPerformers.map((performer, index) => (
+                      <div key={index} className="flex items-center space-x-4 p-4 glass-card hover:scale-102 transition-transform">
+                        <div className="text-3xl">
+                          {index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : '🏅'}
+                        </div>
+                        <div className="flex-1">
+                          <p className="text-lg font-bold text-gradient">
+                            {performer.name}
+                          </p>
+                          <p className="text-sm text-gray-500 dark:text-gray-400">
+                            {(performer.weight / 1000).toFixed(2)} กิโลกรัม
+                          </p>
+                        </div>
+                        <div className="text-right">
+                          <p className="text-xl font-bold text-gradient">
+                            {performer.points.toLocaleString()}
+                          </p>
+                          <p className="text-sm text-gray-500 dark:text-gray-400">คะแนน</p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Monthly Trend Chart (Placeholder) */}
+          <div className="glass-card">
+            <div className="bg-gradient-primary text-white px-8 py-6 rounded-t-3xl">
+              <h2 className="text-3xl font-bold flex items-center">
+                <span className="mr-4 animate-float">📊</span>
+                แนวโน้มรายเดือน
+              </h2>
+            </div>
+            <div className="p-8">
+              <div className="text-center py-20">
+                <div className="text-9xl mb-8 animate-float">📈</div>
+                <h3 className="text-3xl font-bold text-gradient mb-6">
+                  กราฟแนวโน้ม
+                </h3>
+                <p className="text-xl text-gray-600 dark:text-gray-300 mb-8">
+                  กำลังพัฒนาระบบแสดงกราฟ
+                </p>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                  {stats.monthlyData.slice(0, 3).map((month, index) => (
+                    <div key={index} className="glass-card p-6">
+                      <h4 className="text-xl font-bold text-gradient mb-4">{month.month}</h4>
+                      <div className="space-y-2">
+                        <p className="text-lg">
+                          <span className="text-emerald-600 dark:text-emerald-400 font-semibold">
+                            ♻️ {(month.recycleWeight / 1000).toFixed(2)} กก.
+                          </span>
+                        </p>
+                        <p className="text-lg">
+                          <span className="text-orange-600 dark:text-orange-400 font-semibold">
+                            🗑️ {(month.generalWeight / 1000).toFixed(2)} กก.
+                          </span>
+                        </p>
+                        <p className="text-lg">
+                          <span className="text-purple-600 dark:text-purple-400 font-semibold">
+                            ⭐ {month.points} คะแนน
+                          </span>
+                        </p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Action Buttons */}
+          <div className="text-center">
+            <div className="flex justify-center space-x-6">
+              <Link href="/dashboard" className="btn btn-secondary px-8 py-4 text-lg">
+                <span className="mr-3">🏠</span>
+                กลับหน้าหลัก
+              </Link>
+              <Link href="/waste/record" className="btn btn-primary px-8 py-4 text-lg">
+                <span className="mr-3">📝</span>
+                บันทึกขยะใหม่
+              </Link>
             </div>
           </div>
         </div>
