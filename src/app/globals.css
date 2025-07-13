@@ -296,6 +296,42 @@ p, span, div {
   opacity: 0.7;
 }
 
+/* Reset select elements completely */
+select {
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+  background-image: none;
+  background-color: transparent;
+  border: none;
+  outline: none;
+  box-shadow: none;
+  text-shadow: none;
+  color: inherit;
+  font: inherit;
+  margin: 0;
+  padding: 0;
+  vertical-align: baseline;
+  line-height: normal;
+}
+
+/* Reset option elements */
+option {
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  margin: 0;
+  padding: 0;
+  border: none;
+  outline: none;
+  box-shadow: none;
+  text-shadow: none;
+  background-image: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+}
+
 /* Select Dropdown Specific Styles */
 select.form-input {
   background: rgba(255, 255, 255, 0.12);
@@ -310,6 +346,20 @@ select.form-input {
   cursor: pointer;
   border: 1px solid rgba(16, 185, 129, 0.3);
   transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  color: inherit;
+  line-height: 1.5;
+  min-height: 2.5rem;
+  /* Reset any inherited styles */
+  text-align: left;
+  text-decoration: none;
+  text-transform: none;
+  letter-spacing: normal;
+  word-spacing: normal;
+  white-space: nowrap;
+  direction: ltr;
+  /* Prevent weird rendering */
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 select.form-input:focus {
@@ -324,12 +374,38 @@ select.form-input:hover {
   border-color: rgba(16, 185, 129, 0.5);
 }
 
-/* Simple Option Styling */
+/* Simple Option Styling - Reset all custom styles */
 select.form-input option {
-  background: #ffffff;
-  color: #1f2937;
+  background: #ffffff !important;
+  color: #1f2937 !important;
   padding: 8px 12px;
   font-family: var(--font-noto-sans-thai);
+  font-weight: normal;
+  font-size: inherit;
+  line-height: normal;
+  border: none;
+  outline: none;
+  box-shadow: none;
+  text-shadow: none;
+  background-image: none;
+  /* Additional resets */
+  text-decoration: none;
+  text-transform: none;
+  letter-spacing: normal;
+  word-spacing: normal;
+  white-space: nowrap;
+  direction: ltr;
+  display: block;
+  width: 100%;
+  margin: 0;
+  min-height: auto;
+}
+
+/* Remove any pseudo-elements from options */
+select.form-input option::before,
+select.form-input option::after {
+  display: none !important;
+  content: none !important;
 }
 
 /* Disabled state */
@@ -361,8 +437,8 @@ select.form-input:disabled {
   }
   
   select.form-input option {
-    background: #1f2937;
-    color: #ffffff;
+    background: #1f2937 !important;
+    color: #ffffff !important;
   }
   
   select.form-input:disabled {
