@@ -44,12 +44,13 @@ model WasteType {
 }
 
 model WasteRecord {
-  id       Int      @id @default(autoincrement()) @map("record_id")
-  userId   Int      @map("user_id")
-  typeId   Int      @map("type_id")
-  weightG  Int      @map("weight_g") // weight in grams
-  points   Int      // calculated: weight_g * point_factor
-  recordDt DateTime @default(now()) @map("record_dt")
+  id          Int      @id @default(autoincrement()) @map("record_id")
+  userId      Int      @map("user_id")
+  typeId      Int      @map("type_id")
+  weightG     Int      @map("weight_g") // weight in grams
+  points      Int      // calculated: weight_g * point_factor
+  description String?  // optional description field
+  recordDt    DateTime @default(now()) @map("record_dt")
 
   // Relations
   user      User      @relation(fields: [userId], references: [id])

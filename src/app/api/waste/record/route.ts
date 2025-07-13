@@ -4,7 +4,6 @@ import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 
 export const runtime = 'nodejs'
-export const dynamic = 'force-dynamic'
 
 interface RecordInput {
   typeId: number
@@ -239,6 +238,7 @@ export async function POST(request: Request) {
       console.error('Error calculating points:', pointsError)
     }
 
+    console.log('=== Waste Record Success ===')
     return NextResponse.json({
       success: true,
       message: 'บันทึกขยะสำเร็จ',
@@ -249,10 +249,16 @@ export async function POST(request: Request) {
     })
 
   } catch (error) {
+    console.error('=== Waste Record Error ===')
     console.error('Error recording waste:', error)
     
-    // Handle specific Prisma errors
+    // Log detailed error information
     if (error instanceof Error) {
+      console.error('Error name:', error.name)
+      console.error('Error message:', error.message)
+      console.error('Error stack:', error.stack)
+      
+      // Handle specific Prisma errors
       if (error.message.includes('Foreign key constraint')) {
         return NextResponse.json(
           { error: 'ข้อมูลที่ส่งมาไม่ถูกต้อง กรุณาตรวจสอบอีกครั้ง' },
@@ -264,6 +270,13 @@ export async function POST(request: Request) {
         return NextResponse.json(
           { error: 'ข้อมูลซ้ำ กรุณาตรวจสอบอีกครั้ง' },
           { status: 400 }
+        )
+      }
+      
+      if (error.message.includes('Connection')) {
+        return NextResponse.json(
+          { error: 'ไม่สามารถเชื่อมต่อฐานข้อมูลได้ กรุณาลองใหม่อีกครั้ง' },
+          { status: 503 }
         )
       }
     }
