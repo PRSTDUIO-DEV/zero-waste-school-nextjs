@@ -130,7 +130,7 @@ export default function Dashboard() {
                 <div>
                   <p className="stat-label text-green-600 dark:text-green-400">ขยะรีไซเคิล</p>
                   <p className="stat-number text-green-600 dark:text-green-400">
-                    {(stats.recycleWeight / 1000).toFixed(2)}
+                    {((stats.recycleWeight || 0) / 1000).toFixed(2)}
                   </p>
                   <p className="text-sm font-medium text-gray-600 dark:text-gray-300">กิโลกรัม</p>
                 </div>
@@ -143,7 +143,7 @@ export default function Dashboard() {
                 <div>
                   <p className="stat-label text-orange-600 dark:text-orange-400">ขยะทั่วไป</p>
                   <p className="stat-number text-orange-600 dark:text-orange-400">
-                    {(stats.generalWeight / 1000).toFixed(2)}
+                    {((stats.generalWeight || 0) / 1000).toFixed(2)}
                   </p>
                   <p className="text-sm font-medium text-gray-600 dark:text-gray-300">กิโลกรัม</p>
                 </div>
@@ -156,7 +156,7 @@ export default function Dashboard() {
                 <div>
                   <p className="stat-label text-blue-600 dark:text-blue-400">คะแนนรวม</p>
                   <p className="stat-number text-blue-600 dark:text-blue-400">
-                    {stats.totalPoints.toLocaleString()}
+                    {(stats.totalPoints || 0).toLocaleString()}
                   </p>
                   <p className="text-sm font-medium text-gray-600 dark:text-gray-300">คะแนน</p>
                 </div>
@@ -169,7 +169,7 @@ export default function Dashboard() {
                 <div>
                   <p className="stat-label text-purple-600 dark:text-purple-400">อันดับ</p>
                   <p className="stat-number text-purple-600 dark:text-purple-400">
-                    #{stats.userRank}
+                    #{stats.userRank || 0}
                   </p>
                   <p className="text-sm font-medium text-gray-600 dark:text-gray-300">ของโรงเรียน</p>
                 </div>
@@ -240,9 +240,9 @@ export default function Dashboard() {
               </h3>
             </div>
             <div className="p-8">
-              {stats.recentActivities.length > 0 ? (
+              {(stats.recentActivities || []).length > 0 ? (
                 <div className="space-y-6">
-                  {stats.recentActivities.map((activity, index) => (
+                  {(stats.recentActivities || []).map((activity, index) => (
                     <div key={index} className="flex items-center space-x-6 p-6 bg-green-50 dark:bg-green-900/20 rounded-xl border-2 border-green-200 dark:border-green-700 hover:border-green-400 dark:hover:border-green-500 transition-all duration-300 hover:shadow-lg">
                       <div className="text-4xl animate-float">
                         {activity.type === 'RECYCLABLE' ? '♻️' : '🗑️'}
@@ -252,7 +252,7 @@ export default function Dashboard() {
                           บันทึกขยะ{activity.type === 'RECYCLABLE' ? 'รีไซเคิล' : 'ทั่วไป'}
                         </p>
                         <p className="text-sm text-gray-500 dark:text-gray-400 font-medium">
-                          {new Date(activity.createdAt).toLocaleDateString('th-TH', {
+                          {new Date(activity.createdAt || new Date()).toLocaleDateString('th-TH', {
                             year: 'numeric',
                             month: 'long',
                             day: 'numeric',
@@ -263,10 +263,10 @@ export default function Dashboard() {
                       </div>
                       <div className="text-right">
                         <p className="text-xl font-bold text-green-600 dark:text-green-400">
-                          +{activity.points} คะแนน
+                          +{activity.points || 0} คะแนน
                         </p>
                         <p className="text-sm text-gray-500 dark:text-gray-400 font-medium">
-                          {(activity.weight / 1000).toFixed(2)} กิโลกรัม
+                          {((activity.weight || 0) / 1000).toFixed(2)} กิโลกรัม
                         </p>
                       </div>
                     </div>

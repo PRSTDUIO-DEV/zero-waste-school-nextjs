@@ -79,41 +79,34 @@ export async function GET() {
       }
     })
 
-    // Get user's badges
-    const userBadges = await prisma.userBadge.findMany({
-      where: { userId },
-      include: {
-        badge: true
-      }
-    })
-
+    // Return data in the format expected by dashboard component
     return NextResponse.json({
-      stats: {
-        recycleWeight,
-        generalWeight,
-        totalPoints,
-        rank: userRank || '-'
-      },
+      recycleWeight: recycleWeight || 0,
+      generalWeight: generalWeight || 0,
+      totalPoints: totalPoints || 0,
+      rank: userRank || 0,
+      userRank: userRank || 0,
       recentActivities: recentActivities.map(activity => ({
         id: activity.id,
-        typeName: activity.wasteType.name,
-        weightG: activity.weightG,
-        points: activity.points,
-        recordDt: activity.recordDt
-      })),
-      badges: userBadges.map(ub => ({
-        id: ub.badge.id,
-        name: ub.badge.name,
-        description: ub.badge.description,
-        awardedDt: ub.awardedDt
+        type: activity.wasteType.name.includes('พลาสติก') || 
+              activity.wasteType.name.includes('กระดาษ') || 
+              activity.wasteType.name.includes('แก้ว') || 
+              activity.wasteType.name.includes('โลหะ') ? 'RECYCLABLE' : 'GENERAL',
+        weight: activity.weightG || 0,
+        points: activity.points || 0,
+        createdAt: activity.recordDt.toISOString()
       }))
     })
 
   } catch (error) {
     console.error('Error fetching dashboard stats:', error)
-    return NextResponse.json(
-      { error: 'Failed to fetch dashboard stats' },
-      { status: 500 }
-    )
+    return NextResponse.json({
+      recycleWeight: 0,
+      generalWeight: 0,
+      totalPoints: 0,
+      rank: 0,
+      userRank: 0,
+      recentActivities: []
+    })
   }
 } 
