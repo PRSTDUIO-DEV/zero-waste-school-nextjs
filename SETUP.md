@@ -90,4 +90,4 @@ npm run dev
 
 ---
 
-🎉 **Zero Waste School System พร้อมใช้แล้ว!** 
+🎉 **EcoHero School System พร้อมใช้แล้ว!** 

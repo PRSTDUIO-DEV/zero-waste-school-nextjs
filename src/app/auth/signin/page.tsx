@@ -67,7 +67,7 @@ export default function SignIn() {
             เข้าสู่ระบบ
           </h1>
           <p className="text-lg text-gray-600 dark:text-gray-300 font-medium">
-            Zero Waste School System
+            EcoHero School System
           </p>
           <p className="text-sm text-green-600 dark:text-green-400 mt-2">
             รักษ์โลก เริ่มต้นที่โรงเรียน
@@ -79,40 +79,40 @@ export default function SignIn() {
 
 
           {/* Login Form */}
-          <form onSubmit={handleSubmit} className="space-y-6">
-            <div>
+        <form onSubmit={handleSubmit} className="space-y-6">
+          <div>
               <label className="form-label text-green-800 dark:text-green-200">
-                อีเมล
-              </label>
-              <input
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
+              อีเมล
+            </label>
+            <input
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              required
                 className="form-input w-full border-green-300 dark:border-green-600 focus:border-green-500 dark:focus:border-green-400 bg-green-50 dark:bg-green-900/20"
                 placeholder="your@email.com"
-              />
-            </div>
+            />
+          </div>
 
-            <div>
+          <div>
               <label className="form-label text-green-800 dark:text-green-200">
-                รหัสผ่าน
-              </label>
-              <input
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
+              รหัสผ่าน
+            </label>
+            <input
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
                 className="form-input w-full border-green-300 dark:border-green-600 focus:border-green-500 dark:focus:border-green-400 bg-green-50 dark:bg-green-900/20"
-                placeholder="••••••••"
-              />
-            </div>
+              placeholder="••••••••"
+            />
+          </div>
 
-            <button
-              type="submit"
+          <button
+            type="submit"
               disabled={loading}
               className="btn btn-primary w-full py-4 text-xl font-bold shadow-2xl hover:shadow-green-500/25 transform hover:-translate-y-1 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
-            >
+          >
               {loading ? (
                 <div className="flex items-center justify-center">
                   <div className="animate-spin rounded-full h-6 w-6 border-b-3 border-white mr-3"></div>
@@ -124,7 +124,7 @@ export default function SignIn() {
                   เข้าสู่ระบบ
                 </>
               )}
-            </button>
+          </button>
 
             {error && (
               <div className="bg-red-100 dark:bg-red-900/30 border-2 border-red-300 dark:border-red-700 text-red-800 dark:text-red-300 px-6 py-4 rounded-xl text-base font-semibold">
@@ -132,22 +132,22 @@ export default function SignIn() {
                 {error}
               </div>
             )}
-          </form>
+        </form>
 
           {/* Footer */}
           <div className="mt-8 text-center">
             <p className="text-gray-600 dark:text-gray-400 text-base">
-              ยังไม่มีบัญชี?{' '}
+            ยังไม่มีบัญชี?{' '}
               <Link href="/auth/signup" className="text-green-600 dark:text-green-400 hover:text-green-700 dark:hover:text-green-300 font-bold hover:underline transition-colors">
-                สมัครสมาชิก
-              </Link>
-            </p>
+              สมัครสมาชิก
+            </Link>
+          </p>
             <div className="mt-4 flex items-center justify-center space-x-2 text-sm text-green-600 dark:text-green-400">
               <span>🌍</span>
               <span>ร่วมกันรักษ์โลก</span>
               <span>🌱</span>
             </div>
-          </div>
+        </div>
         </div>
       </div>
     </div>

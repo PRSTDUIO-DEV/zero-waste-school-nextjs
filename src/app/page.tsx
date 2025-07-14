@@ -35,7 +35,7 @@ export default async function Home() {
               </div>
             </div>
             <h1 className="text-6xl font-bold text-gradient-eco mb-6">
-              Zero Waste School System
+              EcoHero School System
             </h1>
             <p className="text-2xl text-gray-600 dark:text-gray-300 max-w-3xl mx-auto font-medium leading-relaxed">
               ระบบติดตามและจัดการขยะในโรงเรียน เพื่อสิ่งแวดล้อมที่ดีกว่า
@@ -90,7 +90,7 @@ export default async function Home() {
                 ออกแบบให้ใช้งานง่าย รองรับมือถือและแท็บเล็ต
               </p>
             </div>
-
+            
             {/* Feature 5 */}
             <div className="card p-8 text-center hover:border-red-400 group">
               <div className="text-6xl mb-6 group-hover:scale-110 transition-transform">📈</div>
@@ -101,7 +101,7 @@ export default async function Home() {
                 สถิติและกราฟแสดงผลข้อมูลอย่างชัดเจน
               </p>
             </div>
-
+            
             {/* Feature 6 */}
             <div className="card p-8 text-center hover:border-teal-400 group">
               <div className="text-6xl mb-6 group-hover:scale-110 transition-transform">🔒</div>
@@ -123,20 +123,20 @@ export default async function Home() {
               ร่วมเป็นส่วนหนึ่งในการสร้างโรงเรียนที่ปลอดขยะ เพื่อโลกที่ยั่งยืน
             </p>
             <div className="flex flex-col sm:flex-row gap-6 justify-center items-center">
-              <Link 
-                href="/auth/signin"
+            <Link
+              href="/auth/signin"
                 className="btn btn-secondary px-8 py-4 text-xl font-bold shadow-2xl hover:shadow-blue-500/25"
-              >
+            >
                 <span className="mr-2">🔑</span>
-                เข้าสู่ระบบ
-              </Link>
-              <Link 
-                href="/auth/signup"
+              เข้าสู่ระบบ
+            </Link>
+            <Link
+              href="/auth/signup"
                 className="btn btn-accent px-8 py-4 text-xl font-bold shadow-2xl hover:shadow-yellow-500/25"
-              >
+            >
                 <span className="mr-2">📝</span>
-                สมัครสมาชิก
-              </Link>
+              สมัครสมาชิก
+            </Link>
             </div>
           </div>
 
