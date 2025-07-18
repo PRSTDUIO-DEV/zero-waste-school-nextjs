@@ -700,7 +700,7 @@ export default function AdminPanel() {
                         <div className="space-y-4">
                           <div className="flex justify-between items-center">
                             <span>ชื่อโรงเรียน</span>
-                            <span className="font-bold">Zero Waste School</span>
+                            <span className="font-bold">EcoHero School</span>
                           </div>
                           <div className="flex justify-between items-center">
                             <span>โหมดบำรุงรักษา</span>

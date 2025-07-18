@@ -131,7 +131,7 @@ export default function Dashboard() {
               </div>
               <div>
                 <h1 className="text-4xl font-bold text-gradient-luxury">
-                  Zero Waste Dashboard
+                  EcoHero Dashboard
                 </h1>
                 <p className="text-sm text-emerald-600 dark:text-emerald-400 font-semibold tracking-wide">
                   🌍 Premium Eco Management System
@@ -167,7 +167,7 @@ export default function Dashboard() {
           {/* Premium Welcome Section */}
           <div className="text-center py-12">
             <h2 className="text-5xl font-bold text-gradient-luxury mb-6 animate-shimmer">
-              ยินดีต้อนรับสู่ระบบ Zero Waste
+              ยินดีต้อนรับสู่ระบบ EcoHero
             </h2>
             <p className="text-2xl text-gray-600 dark:text-gray-300 max-w-3xl mx-auto font-medium">
               ร่วมกันสร้างโรงเรียนที่ปลอดขยะ เพื่อโลกที่ยั่งยืน

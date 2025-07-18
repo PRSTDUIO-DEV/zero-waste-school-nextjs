@@ -171,7 +171,7 @@ export default async function Home() {
           {/* Footer Message */}
           <div className="text-center">
             <p className="text-lg text-gray-600 dark:text-gray-300 mb-4">
-              พัฒนาโดยทีมงาน Zero Waste School
+              พัฒนาโดยทีมงาน EcoHero School
             </p>
             <div className="flex justify-center space-x-4 text-2xl">
               <span>🌍</span>
