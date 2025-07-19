@@ -119,7 +119,7 @@ export default function SignupPage() {
             สมัครสมาชิก
           </h1>
           <p className="text-xl text-gray-600 dark:text-gray-300 font-medium">
-            เข้าร่วมระบบ EcoHero School
+            เข้าร่วมระบบ EEP School
           </p>
         </div>
 

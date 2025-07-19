@@ -35,7 +35,7 @@ export default async function Home() {
               </div>
             </div>
             <h1 className="text-6xl font-bold text-gradient-eco mb-6">
-              EcoHero School System
+              EEP School System
             </h1>
             <p className="text-2xl text-gray-600 dark:text-gray-300 max-w-3xl mx-auto font-medium leading-relaxed">
               ระบบติดตามและจัดการขยะในโรงเรียน เพื่อสิ่งแวดล้อมที่ดีกว่า
@@ -171,7 +171,7 @@ export default async function Home() {
           {/* Footer Message */}
           <div className="text-center">
             <p className="text-lg text-gray-600 dark:text-gray-300 mb-4">
-              พัฒนาโดยทีมงาน EcoHero School
+              พัฒนาโดยทีมงาน EEP School
             </p>
             <div className="flex justify-center space-x-4 text-2xl">
               <span>🌍</span>

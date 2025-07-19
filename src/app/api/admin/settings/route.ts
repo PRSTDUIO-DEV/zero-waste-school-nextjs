@@ -23,7 +23,7 @@ export async function GET() {
     // Return default system settings
     // In a real system, these would be stored in a database
     return NextResponse.json({
-      schoolName: 'EcoHero School',
+      schoolName: 'EEP School',
       maxDailyRecords: 10,
       pointsMultiplier: 1.0,
       maintenanceMode: false,

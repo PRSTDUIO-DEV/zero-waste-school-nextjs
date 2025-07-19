@@ -67,7 +67,7 @@ export default function SignIn() {
             เข้าสู่ระบบ
           </h1>
           <p className="text-lg text-gray-600 dark:text-gray-300 font-medium">
-            EcoHero School System
+            EEP School System
           </p>
           <p className="text-sm text-green-600 dark:text-green-400 mt-2">
             รักษ์โลก เริ่มต้นที่โรงเรียน

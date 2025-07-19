@@ -10,7 +10,7 @@ const notoSansThai = Noto_Sans_Thai({
 });
 
 export const metadata: Metadata = {
-  title: "EcoHero",
+  title: "EEP School",
   description: "ระบบติดตามและจัดการขยะในโรงเรียน",
 };
 
