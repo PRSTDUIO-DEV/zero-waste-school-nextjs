@@ -31,9 +31,15 @@ export async function middleware(request: NextRequest) {
       return NextResponse.next();
     }
 
+    const isSecure = request.nextUrl.protocol === "https:";
+
     const token = await getToken({
       req: request,
       secret: process.env.NEXTAUTH_SECRET,
+      cookieName: isSecure
+        ? "__Secure-next-auth.session-token"
+        : "next-auth.session-token",
+      secureCookie: isSecure,
     });
 
     const isAuthenticated = !!token;
