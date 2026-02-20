@@ -1,7 +1,8 @@
+import SessionProvider from "@/components/providers/SessionProvider";
+import ThemeProvider from "@/components/ThemeProvider";
 import type { Metadata } from "next";
 import { Noto_Sans_Thai } from "next/font/google";
 import "./globals.css";
-import SessionProvider from "@/components/providers/SessionProvider";
 
 const notoSansThai = Noto_Sans_Thai({
   subsets: ["latin", "thai"],
@@ -20,12 +21,10 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="th">
-      <body
-        className={`${notoSansThai.variable} antialiased`}
-      >
+    <html lang="th" suppressHydrationWarning>
+      <body className={`${notoSansThai.variable} antialiased`}>
         <SessionProvider>
-          {children}
+          <ThemeProvider>{children}</ThemeProvider>
         </SessionProvider>
       </body>
     </html>

@@ -11,7 +11,7 @@
 - 📈 **Analytics** - สถิติและกราฟแสดงผลข้อมูล
 - 📱 **Responsive Design** - รองรับมือถือและแท็บเล็ต
 - 🎨 **Modern UI** - ธีมสีเขียวสดใส รักษ์โลก
-- 🔤 **Kanit Font** - ฟอนต์ไทยที่สวยงาม
+- 🔤 **Noto Sans Thai Font** - ฟอนต์ไทยที่สวยงาม
 
 ## 🚀 Tech Stack
 
@@ -20,7 +20,7 @@
 - **Database**: PostgreSQL + Prisma ORM
 - **Deployment**: Vercel
 - **Database Hosting**: Neon PostgreSQL
-- **Font**: Kanit Google Font
+- **Font**: Noto Sans Thai Google Font
 
 ## 🌍 Live Demo
 
@@ -29,6 +29,7 @@
 ## 📋 Requirements
 
 ตาม RPD Document:
+
 - User authentication และ role-based access
 - Waste recording system (1g = 1 point default)
 - Leaderboards และ ranking system
@@ -49,11 +50,13 @@ npm install
 ### 2. ตั้งค่าฐานข้อมูล
 
 #### Option A: Neon (แนะนำ)
+
 1. สมัครที่ [neon.tech](https://neon.tech)
 2. สร้าง database ใหม่
 3. คัดลอก connection string
 
 #### Option B: Supabase
+
 1. สมัครที่ [supabase.com](https://supabase.com)
 2. สร้าง project ใหม่
 3. คัดลอก connection string
@@ -61,11 +64,13 @@ npm install
 ### 3. ตั้งค่า Environment Variables
 
 #### Windows (PowerShell):
+
 ```powershell
 ./setup-env.ps1
 ```
 
 #### Manual Setup:
+
 สร้างไฟล์ `.env` ในโฟลเดอร์ `app-src/`:
 
 ```env
@@ -101,8 +106,9 @@ npm start
 เปิดเบราว์เซอร์ไปที่ `http://localhost:3000`
 
 ### บัญชีทดสอบ:
+
 - **Admin**: admin@school.ac.th / 123456
-- **Teacher**: teacher@school.ac.th / 123456  
+- **Teacher**: teacher@school.ac.th / 123456
 - **Student**: student1@school.ac.th / 123456
 
 ## 🚀 Deploy บน Vercel
@@ -134,6 +140,7 @@ vercel --prod
 ## 🎨 Design System
 
 ### Colors
+
 - **Primary**: Bright Green (#16a34a)
 - **Secondary**: Sky Blue (#0ea5e9)
 - **Accent**: Amber (#f59e0b)
@@ -142,10 +149,12 @@ vercel --prod
 - **Error**: Red (#ef4444)
 
 ### Typography
-- **Font**: Kanit (Google Fonts)
+
+- **Font**: Noto Sans Thai (Google Fonts)
 - **Weights**: 300, 400, 500, 600, 700
 
 ### Animations
+
 - Blob effects
 - Float animations
 - Pulse effects
@@ -154,31 +163,34 @@ vercel --prod
 ## 🔧 Troubleshooting
 
 ### Database Connection Error
+
 - ตรวจสอบ `DATABASE_URL` ใน `.env`
 - ลอง `npx prisma db push` ใหม่
 
-### Authentication ไม่ทำงาน  
+### Authentication ไม่ทำงาน
+
 - ตรวจสอบ `NEXTAUTH_SECRET` ใน `.env`
 - ลบ cookie browser และลองใหม่
 
 ### Vercel Deployment ล้มเหลว
+
 - ตรวจสอบ Environment Variables ใน Vercel Dashboard
 - ดู Build Logs เพื่อหาข้อผิดพลาด
 
 ## 📱 Features ที่พร้อมใช้
 
-✅ Authentication System  
-✅ Role-based Access (Student/Teacher/Admin)  
-✅ Database Schema (Users, WasteTypes, Records, Badges)  
-✅ Waste Recording System  
-✅ Statistics Dashboard  
-✅ Leaderboard System  
-✅ Badge System  
-✅ Admin Panel  
-✅ Responsive Design  
-✅ Modern Eco-friendly UI  
-✅ Kanit Font Support  
-✅ Dark Mode Support  
+✅ Authentication System
+✅ Role-based Access (Student/Teacher/Admin)
+✅ Database Schema (Users, WasteTypes, Records, Badges)
+✅ Waste Recording System
+✅ Statistics Dashboard
+✅ Leaderboard System
+✅ Badge System
+✅ Admin Panel
+✅ Responsive Design
+✅ Modern Eco-friendly UI
+✅ Noto Sans Thai Font Support
+✅ Dark Mode Support
 
 ## 🔜 Next Steps (ต่อยอด)
 
@@ -205,10 +217,10 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 - **Developer**: PRSTDUIO-DEV
 - **Design**: Eco-friendly Green Theme
-- **Font**: Kanit Google Font
+- **Font**: Noto Sans Thai Google Font
 
 ---
 
-🎉 **EEP School System พร้อมใช้แล้ว!** 
+🎉 **EEP School System พร้อมใช้แล้ว!**
 
 🌱 **รักษ์โลก เริ่มต้นที่โรงเรียน** 🌍

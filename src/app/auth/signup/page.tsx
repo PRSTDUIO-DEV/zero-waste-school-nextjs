@@ -1,104 +1,111 @@
-'use client'
+"use client";
 
-import { useState } from 'react'
-import { useRouter } from 'next/navigation'
-import Link from 'next/link'
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useState } from "react";
 
 interface FormData {
-  email: string
-  password: string
-  confirmPassword: string
-  name: string
-  role: 'STUDENT' | 'TEACHER'
-  grade?: string
-  classSection?: string
+  email: string;
+  password: string;
+  confirmPassword: string;
+  name: string;
+  role: "STUDENT" | "TEACHER";
+  grade?: string;
+  classSection?: string;
 }
 
 export default function SignupPage() {
-  const router = useRouter()
+  const router = useRouter();
   const [formData, setFormData] = useState<FormData>({
-    email: '',
-    password: '',
-    confirmPassword: '',
-    name: '',
-    role: 'STUDENT'
-  })
-  const [loading, setLoading] = useState(false)
-  const [error, setError] = useState('')
-  const [success, setSuccess] = useState('')
+    email: "",
+    password: "",
+    confirmPassword: "",
+    name: "",
+    role: "STUDENT",
+  });
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-    const { name, value } = e.target
-    setFormData(prev => ({
+  const handleInputChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>,
+  ) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({
       ...prev,
-      [name]: value
-    }))
-  }
+      [name]: value,
+    }));
+  };
 
   const validateForm = (): boolean => {
-    if (!formData.email || !formData.password || !formData.confirmPassword || !formData.name) {
-      setError('กรุณากรอกข้อมูลให้ครบถ้วน')
-      return false
+    if (
+      !formData.email ||
+      !formData.password ||
+      !formData.confirmPassword ||
+      !formData.name
+    ) {
+      setError("กรุณากรอกข้อมูลให้ครบถ้วน");
+      return false;
     }
 
     if (formData.password !== formData.confirmPassword) {
-      setError('รหัสผ่านไม่ตรงกัน')
-      return false
+      setError("รหัสผ่านไม่ตรงกัน");
+      return false;
     }
 
     if (formData.password.length < 6) {
-      setError('รหัสผ่านต้องมีอย่างน้อย 6 ตัวอักษร')
-      return false
+      setError("รหัสผ่านต้องมีอย่างน้อย 6 ตัวอักษร");
+      return false;
     }
 
-    if (formData.role === 'STUDENT' && !formData.grade) {
-      setError('กรุณาเลือกชั้นเรียน')
-      return false
+    if (formData.role === "STUDENT" && !formData.grade) {
+      setError("กรุณาเลือกชั้นเรียน");
+      return false;
     }
 
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(formData.email)) {
-      setError('รูปแบบอีเมลไม่ถูกต้อง')
-      return false
+      setError("รูปแบบอีเมลไม่ถูกต้อง");
+      return false;
     }
 
-    return true
-  }
+    return true;
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setError('')
-    setSuccess('')
+    e.preventDefault();
+    setError("");
+    setSuccess("");
 
-    if (!validateForm()) return
+    if (!validateForm()) return;
 
-    setLoading(true)
+    setLoading(true);
 
     try {
-      const response = await fetch('/api/auth/signup', {
-        method: 'POST',
+      const response = await fetch("/api/auth/signup", {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify(formData),
-      })
+      });
 
-      const data = await response.json()
+      const data = await response.json();
 
       if (response.ok) {
-        setSuccess('สมัครสมาชิกสำเร็จ! กำลังเปลี่ยนหน้า...')
+        setSuccess("สมัครสมาชิกสำเร็จ! กำลังเปลี่ยนหน้า...");
         setTimeout(() => {
-          router.push('/auth/signin')
-        }, 2000)
+          router.push("/auth/signin");
+        }, 2000);
       } else {
-        setError(data.error || 'เกิดข้อผิดพลาดในการสมัครสมาชิก')
+        setError(data.error || "เกิดข้อผิดพลาดในการสมัครสมาชิก");
       }
-    } catch (error) {
-      setError('เกิดข้อผิดพลาดในการเชื่อมต่อ')
+    } catch {
+      setError("เกิดข้อผิดพลาดในการเชื่อมต่อ");
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-teal-50 to-cyan-50 dark:from-gray-900 dark:via-emerald-900 dark:to-teal-900 bg-pattern flex items-center justify-center p-4">
@@ -178,7 +185,7 @@ export default function SignupPage() {
             </div>
 
             {/* Grade Selection for Students */}
-            {formData.role === 'STUDENT' && (
+            {formData.role === "STUDENT" && (
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label htmlFor="grade" className="form-label">
@@ -187,12 +194,21 @@ export default function SignupPage() {
                   <select
                     id="grade"
                     name="grade"
-                    value={formData.grade || ''}
+                    value={formData.grade || ""}
                     onChange={handleInputChange}
                     className="form-input w-full"
                     required
                   >
                     <option value="">เลือกชั้น</option>
+                    <option value="-3">อนุบาล 1</option>
+                    <option value="-2">อนุบาล 2</option>
+                    <option value="-1">อนุบาล 3</option>
+                    <option value="7">ประถมศึกษาปีที่ 1</option>
+                    <option value="8">ประถมศึกษาปีที่ 2</option>
+                    <option value="9">ประถมศึกษาปีที่ 3</option>
+                    <option value="10">ประถมศึกษาปีที่ 4</option>
+                    <option value="11">ประถมศึกษาปีที่ 5</option>
+                    <option value="12">ประถมศึกษาปีที่ 6</option>
                     <option value="1">มัธยมศึกษาปีที่ 1</option>
                     <option value="2">มัธยมศึกษาปีที่ 2</option>
                     <option value="3">มัธยมศึกษาปีที่ 3</option>
@@ -209,7 +225,7 @@ export default function SignupPage() {
                     id="classSection"
                     name="classSection"
                     type="text"
-                    value={formData.classSection || ''}
+                    value={formData.classSection || ""}
                     onChange={handleInputChange}
                     className="form-input w-full"
                     placeholder="เช่น 1, 2, 3"
@@ -256,7 +272,9 @@ export default function SignupPage() {
               <div className="glass-card bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800 p-4">
                 <div className="flex items-center">
                   <span className="text-2xl mr-3">❌</span>
-                  <p className="text-red-600 dark:text-red-400 font-medium">{error}</p>
+                  <p className="text-red-600 dark:text-red-400 font-medium">
+                    {error}
+                  </p>
                 </div>
               </div>
             )}
@@ -266,7 +284,9 @@ export default function SignupPage() {
               <div className="glass-card bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800 p-4">
                 <div className="flex items-center">
                   <span className="text-2xl mr-3">✅</span>
-                  <p className="text-green-600 dark:text-green-400 font-medium">{success}</p>
+                  <p className="text-green-600 dark:text-green-400 font-medium">
+                    {success}
+                  </p>
                 </div>
               </div>
             )}
@@ -305,9 +325,9 @@ export default function SignupPage() {
             {/* Sign In Link */}
             <div className="text-center">
               <p className="text-gray-600 dark:text-gray-300 font-medium">
-                มีบัญชีแล้ว?{' '}
-                <Link 
-                  href="/auth/signin" 
+                มีบัญชีแล้ว?{" "}
+                <Link
+                  href="/auth/signin"
                   className="text-gradient font-bold hover:underline transition-all duration-300"
                 >
                   เข้าสู่ระบบ
@@ -323,10 +343,11 @@ export default function SignupPage() {
             การสมัครสมาชิกแสดงว่าคุณยอมรับ
           </p>
           <p className="text-gray-500 dark:text-gray-400 text-sm font-medium">
-            <span className="text-gradient">เงื่อนไขการใช้งาน</span> และ <span className="text-gradient">นโยบายความเป็นส่วนตัว</span>
+            <span className="text-gradient">เงื่อนไขการใช้งาน</span> และ{" "}
+            <span className="text-gradient">นโยบายความเป็นส่วนตัว</span>
           </p>
         </div>
       </div>
     </div>
-  )
-} 
+  );
+}

@@ -1,93 +1,103 @@
-'use client'
+"use client";
 
-import { useState, useEffect } from 'react'
-import { useSession } from 'next-auth/react'
-import { redirect } from 'next/navigation'
-import Link from 'next/link'
+import { useSession } from "next-auth/react";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
 
 interface StatisticsData {
   personalStats: {
-    totalRecords: number
-    totalWeight: number
-    totalPoints: number
-    recycleWeight: number
-    generalWeight: number
-    averagePerDay: number
-    rank: number
-    percentile: number
-  }
+    totalRecords: number;
+    totalWeight: number;
+    totalPoints: number;
+    recycleWeight: number;
+    generalWeight: number;
+    averagePerDay: number;
+    rank: number;
+    percentile: number;
+  };
   schoolStats: {
-    totalUsers: number
-    totalRecords: number
-    totalWeight: number
-    totalPoints: number
+    totalUsers: number;
+    totalRecords: number;
+    totalWeight: number;
+    totalPoints: number;
     topPerformers: Array<{
-      name: string
-      points: number
-      weight: number
-    }>
-  }
+      name: string;
+      points: number;
+      weight: number;
+    }>;
+  };
   monthlyData: Array<{
-    month: string
-    recycleWeight: number
-    generalWeight: number
-    points: number
-  }>
+    month: string;
+    recycleWeight: number;
+    generalWeight: number;
+    points: number;
+  }>;
   weeklyData: Array<{
-    day: string
-    weight: number
-    points: number
-  }>
+    day: string;
+    weight: number;
+    points: number;
+  }>;
   categoryBreakdown: Array<{
-    category: string
-    weight: number
-    percentage: number
-  }>
+    category: string;
+    weight: number;
+    percentage: number;
+  }>;
 }
 
 export default function StatisticsPage() {
-  const { data: session, status } = useSession()
-  const [stats, setStats] = useState<StatisticsData | null>(null)
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState('')
-  const [selectedPeriod, setSelectedPeriod] = useState<'week' | 'month' | 'year'>('month')
+  const { data: session, status } = useSession();
+  const router = useRouter();
+  const [stats, setStats] = useState<StatisticsData | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+  const [selectedPeriod, setSelectedPeriod] = useState<
+    "week" | "month" | "year"
+  >("month");
 
   useEffect(() => {
-    if (status === 'loading') return
+    if (status === "loading") return;
     if (!session) {
-      redirect('/auth/signin')
+      router.push("/auth/signin");
+      return;
     }
 
-    fetchStatistics()
-  }, [session, status, selectedPeriod])
-
-  const fetchStatistics = async () => {
-    try {
-      setLoading(true)
-      const response = await fetch(`/api/statistics?period=${selectedPeriod}`)
-      if (response.ok) {
-        const data = await response.json()
-        setStats(data)
-      } else {
-        setError('ไม่สามารถโหลดข้อมูลสถิติได้')
+    const fetchStatistics = async () => {
+      try {
+        setLoading(true);
+        const response = await fetch(
+          `/api/statistics?period=${selectedPeriod}`,
+        );
+        if (response.ok) {
+          const data = await response.json();
+          setStats(data);
+        } else {
+          setError("ไม่สามารถโหลดข้อมูลสถิติได้");
+        }
+      } catch {
+        setError("เกิดข้อผิดพลาดในการโหลดข้อมูล");
+      } finally {
+        setLoading(false);
       }
-    } catch (error) {
-      setError('เกิดข้อผิดพลาดในการโหลดข้อมูล')
-    } finally {
-      setLoading(false)
-    }
-  }
+    };
 
-  if (status === 'loading' || loading) {
+    fetchStatistics();
+  }, [session, status, selectedPeriod, router]);
+
+  if (status === "loading" || loading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-teal-50 to-cyan-50 dark:from-gray-900 dark:via-emerald-900 dark:to-teal-900 bg-pattern flex items-center justify-center">
         <div className="glass-card p-12 text-center">
           <div className="animate-spin rounded-full h-20 w-20 border-b-4 border-emerald-500 mx-auto mb-6"></div>
-          <h2 className="text-3xl font-bold text-gradient mb-4">กำลังโหลดข้อมูล...</h2>
-          <p className="text-xl text-gray-600 dark:text-gray-300">กรุณารอสักครู่</p>
+          <h2 className="text-3xl font-bold text-gradient mb-4">
+            กำลังโหลดข้อมูล...
+          </h2>
+          <p className="text-xl text-gray-600 dark:text-gray-300">
+            กรุณารอสักครู่
+          </p>
         </div>
       </div>
-    )
+    );
   }
 
   if (error) {
@@ -95,8 +105,12 @@ export default function StatisticsPage() {
       <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-teal-50 to-cyan-50 dark:from-gray-900 dark:via-emerald-900 dark:to-teal-900 bg-pattern flex items-center justify-center">
         <div className="glass-card p-12 text-center">
           <div className="text-8xl mb-6">❌</div>
-          <h2 className="text-3xl font-bold text-red-600 mb-4">เกิดข้อผิดพลาด</h2>
-          <p className="text-xl text-gray-600 dark:text-gray-300 mb-8">{error}</p>
+          <h2 className="text-3xl font-bold text-red-600 mb-4">
+            เกิดข้อผิดพลาด
+          </h2>
+          <p className="text-xl text-gray-600 dark:text-gray-300 mb-8">
+            {error}
+          </p>
           <button
             onClick={() => window.location.reload()}
             className="btn btn-primary px-8 py-4 text-lg"
@@ -105,12 +119,10 @@ export default function StatisticsPage() {
           </button>
         </div>
       </div>
-    )
+    );
   }
 
-  if (!stats) return null
-
-  const user = session?.user
+  if (!stats) return null;
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-teal-50 to-cyan-50 dark:from-gray-900 dark:via-emerald-900 dark:to-teal-900 bg-pattern">
@@ -119,7 +131,10 @@ export default function StatisticsPage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center py-6">
             <div className="flex items-center space-x-4">
-              <Link href="/dashboard" className="glass-button p-3 hover:scale-110 transition-transform">
+              <Link
+                href="/dashboard"
+                className="glass-button p-3 hover:scale-110 transition-transform"
+              >
                 <span className="text-2xl">←</span>
               </Link>
               <div className="w-16 h-16 bg-gradient-luxury rounded-3xl flex items-center justify-center shadow-2xl animate-pulse-luxury">
@@ -137,7 +152,9 @@ export default function StatisticsPage() {
             <div className="flex items-center space-x-4">
               <select
                 value={selectedPeriod}
-                onChange={(e) => setSelectedPeriod(e.target.value as 'week' | 'month' | 'year')}
+                onChange={(e) =>
+                  setSelectedPeriod(e.target.value as "week" | "month" | "year")
+                }
                 className="glass-button px-4 py-2 font-semibold"
               >
                 <option value="week">สัปดาห์นี้</option>
@@ -164,44 +181,66 @@ export default function StatisticsPage() {
                 <div className="stat-card group">
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="stat-label text-emerald-600 dark:text-emerald-400">จำนวนครั้ง</p>
-                      <p className="stat-number">{stats.personalStats.totalRecords}</p>
-                      <p className="text-lg font-semibold text-gray-600 dark:text-gray-300">บันทึก</p>
-                    </div>
-                    <div className="text-6xl group-hover:scale-110 transition-transform animate-float">📝</div>
-                  </div>
-                </div>
-
-                <div className="stat-card group">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="stat-label text-blue-600 dark:text-blue-400">น้ำหนักรวม</p>
-                      <p className="stat-number text-blue-600 dark:text-blue-400">
-                        {(stats.personalStats.totalWeight / 1000).toFixed(2)}
+                      <p className="stat-label text-emerald-600 dark:text-emerald-400">
+                        จำนวนครั้ง
                       </p>
-                      <p className="text-lg font-semibold text-gray-600 dark:text-gray-300">กิโลกรัม</p>
+                      <p className="stat-number">
+                        {stats.personalStats.totalRecords}
+                      </p>
+                      <p className="text-lg font-semibold text-gray-600 dark:text-gray-300">
+                        บันทึก
+                      </p>
                     </div>
-                    <div className="text-6xl group-hover:scale-110 transition-transform animate-float animation-delay-1000">⚖️</div>
+                    <div className="text-6xl group-hover:scale-110 transition-transform animate-float">
+                      📝
+                    </div>
                   </div>
                 </div>
 
                 <div className="stat-card group">
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="stat-label text-purple-600 dark:text-purple-400">คะแนนรวม</p>
+                      <p className="stat-label text-blue-600 dark:text-blue-400">
+                        น้ำหนักรวม
+                      </p>
+                      <p className="stat-number text-blue-600 dark:text-blue-400">
+                        {stats.personalStats.totalWeight.toLocaleString()}
+                      </p>
+                      <p className="text-lg font-semibold text-gray-600 dark:text-gray-300">
+                        กรัม
+                      </p>
+                    </div>
+                    <div className="text-6xl group-hover:scale-110 transition-transform animate-float animation-delay-1000">
+                      ⚖️
+                    </div>
+                  </div>
+                </div>
+
+                <div className="stat-card group">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="stat-label text-purple-600 dark:text-purple-400">
+                        คะแนนรวม
+                      </p>
                       <p className="stat-number text-purple-600 dark:text-purple-400">
                         {stats.personalStats.totalPoints.toLocaleString()}
                       </p>
-                      <p className="text-lg font-semibold text-gray-600 dark:text-gray-300">คะแนน</p>
+                      <p className="text-lg font-semibold text-gray-600 dark:text-gray-300">
+                        คะแนน
+                      </p>
                     </div>
-                    <div className="text-6xl group-hover:scale-110 transition-transform animate-float animation-delay-2000">⭐</div>
+                    <div className="text-6xl group-hover:scale-110 transition-transform animate-float animation-delay-2000">
+                      ⭐
+                    </div>
                   </div>
                 </div>
 
                 <div className="stat-card group">
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="stat-label text-orange-600 dark:text-orange-400">อันดับ</p>
+                      <p className="stat-label text-orange-600 dark:text-orange-400">
+                        อันดับ
+                      </p>
                       <p className="stat-number text-orange-600 dark:text-orange-400">
                         #{stats.personalStats.rank}
                       </p>
@@ -209,7 +248,9 @@ export default function StatisticsPage() {
                         Top {stats.personalStats.percentile}%
                       </p>
                     </div>
-                    <div className="text-6xl group-hover:scale-110 transition-transform animate-float animation-delay-3000">🏆</div>
+                    <div className="text-6xl group-hover:scale-110 transition-transform animate-float animation-delay-3000">
+                      🏆
+                    </div>
                   </div>
                 </div>
               </div>
@@ -235,15 +276,22 @@ export default function StatisticsPage() {
                           ขยะรีไซเคิล
                         </p>
                         <p className="text-sm text-gray-500 dark:text-gray-400">
-                          {((stats.personalStats.recycleWeight / stats.personalStats.totalWeight) * 100).toFixed(1)}%
+                          {(
+                            (stats.personalStats.recycleWeight /
+                              stats.personalStats.totalWeight) *
+                            100
+                          ).toFixed(1)}
+                          %
                         </p>
                       </div>
                     </div>
                     <div className="text-right">
                       <p className="text-2xl font-bold text-emerald-600 dark:text-emerald-400">
-                        {(stats.personalStats.recycleWeight / 1000).toFixed(2)}
+                        {stats.personalStats.recycleWeight.toLocaleString()}
                       </p>
-                      <p className="text-sm text-gray-500 dark:text-gray-400">กิโลกรัม</p>
+                      <p className="text-sm text-gray-500 dark:text-gray-400">
+                        กรัม
+                      </p>
                     </div>
                   </div>
 
@@ -255,15 +303,22 @@ export default function StatisticsPage() {
                           ขยะทั่วไป
                         </p>
                         <p className="text-sm text-gray-500 dark:text-gray-400">
-                          {((stats.personalStats.generalWeight / stats.personalStats.totalWeight) * 100).toFixed(1)}%
+                          {(
+                            (stats.personalStats.generalWeight /
+                              stats.personalStats.totalWeight) *
+                            100
+                          ).toFixed(1)}
+                          %
                         </p>
                       </div>
                     </div>
                     <div className="text-right">
                       <p className="text-2xl font-bold text-orange-600 dark:text-orange-400">
-                        {(stats.personalStats.generalWeight / 1000).toFixed(2)}
+                        {stats.personalStats.generalWeight.toLocaleString()}
                       </p>
-                      <p className="text-sm text-gray-500 dark:text-gray-400">กิโลกรัม</p>
+                      <p className="text-sm text-gray-500 dark:text-gray-400">
+                        กรัม
+                      </p>
                     </div>
                   </div>
                 </div>
@@ -281,16 +336,16 @@ export default function StatisticsPage() {
                 <div className="text-center">
                   <div className="text-8xl mb-6 animate-pulse-luxury">📊</div>
                   <p className="text-4xl font-bold text-gradient mb-4">
-                    {(stats.personalStats.averagePerDay / 1000).toFixed(2)}
+                    {stats.personalStats.averagePerDay.toLocaleString()}
                   </p>
                   <p className="text-xl text-gray-600 dark:text-gray-300 font-semibold">
-                    กิโลกรัม/วัน
+                    กรัม/วัน
                   </p>
                   <div className="mt-6 p-4 glass-card">
                     <p className="text-lg text-gray-500 dark:text-gray-400">
-                      {stats.personalStats.averagePerDay > 1000 ? 
-                        '🎉 ยอดเยี่ยม! คุณมีส่วนร่วมมาก' : 
-                        '💪 ดีมาก! เพิ่มความพยายามต่อไป'}
+                      {stats.personalStats.averagePerDay > 1000
+                        ? "🎉 ยอดเยี่ยม! คุณมีส่วนร่วมมาก"
+                        : "💪 ดีมาก! เพิ่มความพยายามต่อไป"}
                     </p>
                   </div>
                 </div>
@@ -320,7 +375,9 @@ export default function StatisticsPage() {
 
                 <div className="stat-card">
                   <div className="text-center">
-                    <div className="text-5xl mb-4 animate-float animation-delay-1000">📝</div>
+                    <div className="text-5xl mb-4 animate-float animation-delay-1000">
+                      📝
+                    </div>
                     <p className="stat-number text-emerald-600 dark:text-emerald-400">
                       {stats.schoolStats.totalRecords}
                     </p>
@@ -330,17 +387,21 @@ export default function StatisticsPage() {
 
                 <div className="stat-card">
                   <div className="text-center">
-                    <div className="text-5xl mb-4 animate-float animation-delay-2000">⚖️</div>
+                    <div className="text-5xl mb-4 animate-float animation-delay-2000">
+                      ⚖️
+                    </div>
                     <p className="stat-number text-purple-600 dark:text-purple-400">
-                      {(stats.schoolStats.totalWeight / 1000).toFixed(1)}
+                      {stats.schoolStats.totalWeight.toLocaleString()}
                     </p>
-                    <p className="stat-label">กิโลกรัม</p>
+                    <p className="stat-label">กรัม</p>
                   </div>
                 </div>
 
                 <div className="stat-card">
                   <div className="text-center">
-                    <div className="text-5xl mb-4 animate-float animation-delay-3000">⭐</div>
+                    <div className="text-5xl mb-4 animate-float animation-delay-3000">
+                      ⭐
+                    </div>
                     <p className="stat-number text-orange-600 dark:text-orange-400">
                       {stats.schoolStats.totalPoints.toLocaleString()}
                     </p>
@@ -360,23 +421,34 @@ export default function StatisticsPage() {
                 <div className="p-6">
                   <div className="space-y-4">
                     {stats.schoolStats.topPerformers.map((performer, index) => (
-                      <div key={index} className="flex items-center space-x-4 p-4 glass-card hover:scale-102 transition-transform">
+                      <div
+                        key={index}
+                        className="flex items-center space-x-4 p-4 glass-card hover:scale-102 transition-transform"
+                      >
                         <div className="text-3xl">
-                          {index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : '🏅'}
+                          {index === 0
+                            ? "🥇"
+                            : index === 1
+                              ? "🥈"
+                              : index === 2
+                                ? "🥉"
+                                : "🏅"}
                         </div>
                         <div className="flex-1">
                           <p className="text-lg font-bold text-gradient">
                             {performer.name}
                           </p>
                           <p className="text-sm text-gray-500 dark:text-gray-400">
-                            {(performer.weight / 1000).toFixed(2)} กิโลกรัม
+                            {performer.weight.toLocaleString()} กรัม
                           </p>
                         </div>
                         <div className="text-right">
                           <p className="text-xl font-bold text-gradient">
                             {performer.points.toLocaleString()}
                           </p>
-                          <p className="text-sm text-gray-500 dark:text-gray-400">คะแนน</p>
+                          <p className="text-sm text-gray-500 dark:text-gray-400">
+                            คะแนน
+                          </p>
                         </div>
                       </div>
                     ))}
@@ -406,7 +478,9 @@ export default function StatisticsPage() {
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                   {stats.monthlyData.slice(0, 3).map((month, index) => (
                     <div key={index} className="glass-card p-6">
-                      <h4 className="text-xl font-bold text-gradient mb-4">{month.month}</h4>
+                      <h4 className="text-xl font-bold text-gradient mb-4">
+                        {month.month}
+                      </h4>
                       <div className="space-y-2">
                         <p className="text-lg">
                           <span className="text-emerald-600 dark:text-emerald-400 font-semibold">
@@ -434,11 +508,17 @@ export default function StatisticsPage() {
           {/* Action Buttons */}
           <div className="text-center">
             <div className="flex justify-center space-x-6">
-              <Link href="/dashboard" className="btn btn-secondary px-8 py-4 text-lg">
+              <Link
+                href="/dashboard"
+                className="btn btn-secondary px-8 py-4 text-lg"
+              >
                 <span className="mr-3">🏠</span>
                 กลับหน้าหลัก
               </Link>
-              <Link href="/waste/record" className="btn btn-primary px-8 py-4 text-lg">
+              <Link
+                href="/waste/record"
+                className="btn btn-primary px-8 py-4 text-lg"
+              >
                 <span className="mr-3">📝</span>
                 บันทึกขยะใหม่
               </Link>
@@ -447,5 +527,5 @@ export default function StatisticsPage() {
         </div>
       </main>
     </div>
-  )
-} 
+  );
+}
