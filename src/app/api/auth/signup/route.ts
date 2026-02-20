@@ -64,7 +64,14 @@ export async function POST(request: NextRequest) {
     const hashedPassword = await bcrypt.hash(password, 12);
 
     // Create user
-    const userData: any = {
+    const userData: {
+      email: string;
+      pwdHash: string;
+      name: string;
+      role: string;
+      grade?: number;
+      classSection?: string;
+    } = {
       email,
       pwdHash: hashedPassword,
       name,

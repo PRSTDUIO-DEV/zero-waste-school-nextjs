@@ -50,7 +50,7 @@ export async function middleware(request: NextRequest) {
     }
 
     // Protect admin routes - require ADMIN role
-    if (pathname.startsWith("/admin")) {
+    if (adminRoutes.some((route) => pathname.startsWith(route))) {
       if (!isAuthenticated) {
         const signInUrl = new URL("/auth/signin", request.url);
         signInUrl.searchParams.set("callbackUrl", pathname);
