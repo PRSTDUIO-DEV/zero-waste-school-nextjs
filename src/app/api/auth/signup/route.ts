@@ -68,14 +68,14 @@ export async function POST(request: NextRequest) {
       email: string;
       pwdHash: string;
       name: string;
-      role: string;
+      role: "STUDENT" | "TEACHER" | "ADMIN";
       grade?: number;
       classSection?: string;
     } = {
       email,
       pwdHash: hashedPassword,
       name,
-      role,
+      role: role as "STUDENT" | "TEACHER" | "ADMIN",
     };
 
     // Add grade and classSection for students
