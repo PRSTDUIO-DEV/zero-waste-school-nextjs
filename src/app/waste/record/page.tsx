@@ -83,7 +83,7 @@ export default function WasteRecordPage() {
           records: [
             {
               typeId: formData.wasteTypeId,
-              weightG: Math.round(formData.weight * 1000), // Convert to grams
+              weightG: Math.round(formData.weight), // Already in grams
               description: formData.description || null,
             },
           ],
@@ -181,9 +181,7 @@ export default function WasteRecordPage() {
   const calculatePoints = () => {
     const selectedType = getSelectedWasteType();
     if (!selectedType || !formData.weight) return 0;
-    return Math.round(
-      formData.weight * 1000 * Number(selectedType.pointFactor),
-    );
+    return Math.round(formData.weight * Number(selectedType.pointFactor));
   };
 
   if (status === "loading" || loading) {
@@ -460,9 +458,9 @@ export default function WasteRecordPage() {
                         คะแนน
                       </p>
                       <div className="mt-4 text-sm text-gray-500 dark:text-gray-400">
-                        {formData.weight} กก. ×{" "}
+                        {formData.weight.toLocaleString()} กรัม ×{" "}
                         {Number(getSelectedWasteType()?.pointFactor)} คะแนน/กรัม
-                        × 1,000 = {calculatePoints().toLocaleString()} คะแนน
+                        = {calculatePoints().toLocaleString()} คะแนน
                       </div>
                     </div>
                   )}
