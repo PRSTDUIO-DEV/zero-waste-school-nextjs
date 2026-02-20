@@ -7,13 +7,7 @@ export const dynamic = "force-dynamic";
 // Cache waste types for 5 minutes
 const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
 let wasteTypesCache: {
-  data: {
-    id: number;
-    name: string;
-    description: string | null;
-    pointFactor: number;
-    category: string;
-  }[];
+  data: Record<string, unknown>[];
   timestamp: number;
 } | null = null;
 
